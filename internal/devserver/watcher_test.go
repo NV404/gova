@@ -18,6 +18,15 @@ func waitEvent(t *testing.T, ch <-chan struct{}, d time.Duration) bool {
 	}
 }
 
+// warmupWatcher waits briefly for the fsnotify backend to finish registering
+// its subscription. On slower CI hosts — particularly the macOS GitHub
+// Actions runners — the first write can race the kqueue add and get dropped.
+const watcherWarmup = 150 * time.Millisecond
+
+// eventWait is the timeout for positive-expectation assertions. Chosen to be
+// generous enough for overloaded CI without making failing tests sluggish.
+const eventWait = 3 * time.Second
+
 func TestWatcherFiresOnGoFileWrite(t *testing.T) {
 	dir := t.TempDir()
 	if err := os.WriteFile(filepath.Join(dir, "main.go"), []byte("package x"), 0o644); err != nil {
@@ -28,11 +37,12 @@ func TestWatcherFiresOnGoFileWrite(t *testing.T) {
 		t.Fatalf("NewWatcher: %v", err)
 	}
 	defer w.Close()
+	time.Sleep(watcherWarmup)
 
 	if err := os.WriteFile(filepath.Join(dir, "main.go"), []byte("package x\n"), 0o644); err != nil {
 		t.Fatalf("write: %v", err)
 	}
-	if !waitEvent(t, w.Events(), time.Second) {
+	if !waitEvent(t, w.Events(), eventWait) {
 		t.Fatal("expected debounced event after .go write")
 	}
 }
@@ -80,6 +90,7 @@ func TestWatcherDebouncesBurst(t *testing.T) {
 		t.Fatalf("NewWatcher: %v", err)
 	}
 	defer w.Close()
+	time.Sleep(watcherWarmup)
 
 	for i := 0; i < 5; i++ {
 		if err := os.WriteFile(path, []byte("package x\n"), 0o644); err != nil {
@@ -87,7 +98,7 @@ func TestWatcherDebouncesBurst(t *testing.T) {
 		}
 		time.Sleep(10 * time.Millisecond)
 	}
-	if !waitEvent(t, w.Events(), time.Second) {
+	if !waitEvent(t, w.Events(), eventWait) {
 		t.Fatal("expected one event after burst")
 	}
 	// No second event should fire from the same burst.
@@ -103,19 +114,22 @@ func TestWatcherPicksUpNewDirectory(t *testing.T) {
 		t.Fatalf("NewWatcher: %v", err)
 	}
 	defer w.Close()
+	time.Sleep(watcherWarmup)
 
 	sub := filepath.Join(dir, "pkg")
 	if err := os.Mkdir(sub, 0o755); err != nil {
 		t.Fatalf("mkdir: %v", err)
 	}
-	// Drain the directory-create signal if any slipped through (it should not,
-	// since only .go writes fire events, but be resilient).
+	// Give the watcher time to register the new subdirectory, and drain any
+	// directory-create signal that slipped through (it should not, since only
+	// .go writes fire events, but be resilient).
+	time.Sleep(watcherWarmup)
 	_ = waitEvent(t, w.Events(), 50*time.Millisecond)
 
 	if err := os.WriteFile(filepath.Join(sub, "a.go"), []byte("package pkg"), 0o644); err != nil {
 		t.Fatalf("write: %v", err)
 	}
-	if !waitEvent(t, w.Events(), time.Second) {
+	if !waitEvent(t, w.Events(), eventWait) {
 		t.Fatal("expected event after writing .go in new subdirectory")
 	}
 }
