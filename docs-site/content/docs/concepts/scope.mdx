@@ -1,0 +1,59 @@
+---
+title: Scope
+description: The per-component context that owns state, refs, effects, and stores.
+---
+
+A `*Scope` is the value passed to every `Body` method and to every `Define`
+closure. It stores:
+
+- Reactive state (`StateValue`) keyed by call site or explicit string.
+- Non-reactive references (`RefValue`) keyed the same way.
+- Effects (`UseEffect`, `UseAsync`) with their cancellation tokens.
+- Provided stores visible to descendants.
+- A `context.Context` tied to the component's lifetime.
+
+You never construct a scope yourself; the framework passes the right one in.
+
+## API surface
+
+The type has one exported method:
+
+```go
+func (s *Scope) Context() context.Context
+```
+
+The returned context is cancelled when the component unmounts. Use it in
+goroutines started from event handlers or effects to clean up work.
+
+Every other interaction with the scope happens through free functions that
+take a `*Scope` as their first argument: `State`, `Ref`, `UseEffect`,
+`UseAsync`, `Provide`, `UseStore`, `UseAlert`, `UseSheet`, `UseSetTheme`,
+`UseNav`, and `UseAnimation`.
+
+## Identity inside a scope
+
+Call-site-based identity (via `runtime.Caller`) means you can declare state
+inline and rely on it being stable across renders:
+
+```go
+func (v Counter) Body(s *gova.Scope) gova.View {
+	count := gova.State(s, 0) // identity: file:line of this call
+	return gova.Text(count.Format("count: %d"))
+}
+```
+
+If you need identity that survives across multiple call sites (for example,
+dynamic state allocated inside a loop), use `StateKey(s, "my-key", initial)`
+instead.
+
+## Parent and child scopes
+
+Each component gets its own scope. Children inherit provided stores from
+their nearest ancestor that called `Provide`. Inherited stores are walked at
+read time; there is no global registry.
+
+## Cleanup order
+
+When a scope is destroyed, cleanup functions returned from `UseEffect` run,
+then `context.CancelFunc`s fire, and finally state is released for garbage
+collection. You should not rely on any particular ordering between siblings.

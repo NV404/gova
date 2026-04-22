@@ -1,0 +1,104 @@
+---
+title: Lists
+description: Reactive collections with stable identity for diffing.
+---
+
+Gova provides three list primitives. Pick `List` when you want explicit
+control, `ListOf` when each item carries its own identity, and `ForEach` (or
+`ForEachIndexed`) when the slice is not reactive.
+
+## List
+
+```go
+func List[T any, K comparable](
+    state *StateValue[[]T],
+    keyFn func(T) K,
+    renderFn func(int, T) View,
+) *viewNode
+```
+
+`List` reads the slice from the given state and calls `renderFn(i, item)`
+for each element. The `keyFn` produces a comparable identity that the
+reconciler uses to diff item moves and removals.
+
+```go
+gova.List(todos,
+    func(t Todo) int { return t.ID },
+    func(i int, todo Todo) gova.View {
+        return TodoRow{Todo: todo}
+    },
+)
+```
+
+## ListOf
+
+```go
+func ListOf[T any](state *StateValue[[]T], renderFn func(T) any) *viewNode
+```
+
+`ListOf` infers the key from the element. Resolution order:
+
+1. If `T` (or `*T`) has an `ID() K` method, the method is called.
+2. If `T` is a struct with a field tagged `` `gova:"id"` ``, that field is
+   used.
+3. If `T` is a struct with an exported `ID` field, that field is used.
+4. Otherwise the slice index is used as the key. This works but is less
+   robust under reordering; consider `List` with an explicit key function.
+
+```go
+type Note struct {
+    ID    int
+    Title string
+}
+
+gova.ListOf(notes, func(n Note) any {
+    return NoteRow{Note: n}
+})
+```
+
+Accessor resolution caches per element type, so the reflection cost is paid
+once per process.
+
+## ForEach and ForEachIndexed
+
+```go
+func ForEach[T any](items []T, renderFn func(T) any) *viewNode
+func ForEachIndexed[T any](items []T, renderFn func(int, T) any) *viewNode
+```
+
+Use `ForEach` for plain slices that do not come from a `StateValue`. The
+result is a flat `Group` node that drops into any parent layout.
+
+```go
+gova.VStack(
+    gova.Text("Pinned"),
+    gova.ForEach(pinned, func(item Pinned) any { return PinnedRow{Item: item} }),
+)
+```
+
+`ForEachIndexed` is identical except the render function also receives the
+index, matching the old `List` signature for callers that do not need
+reactive updates.
+
+## Identifiable interface
+
+```go
+type Identifiable[K comparable] interface {
+    ID() K
+}
+```
+
+Implement this when you control the type and want `ListOf` to pick up the
+identity by method rather than field. Both value and pointer receivers work.
+
+## DerivedList
+
+Wrap a state whose value contains a slice to produce a `*StateValue[[]T]`
+suitable for `List` or `ListOf`:
+
+```go
+todos := gova.DerivedList(model, func(m Model) []Todo { return m.Todos })
+gova.ListOf(todos, func(t Todo) any { return TodoRow{Todo: t} })
+```
+
+See [Signals and derived values](/docs/state/signals) for details.

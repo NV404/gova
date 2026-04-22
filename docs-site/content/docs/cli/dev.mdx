@@ -1,0 +1,60 @@
+---
+title: gova dev
+description: Hot reload a Gova application on file change.
+---
+
+`gova dev` watches the module root for Go source changes, rebuilds the
+binary, and restarts the child process. It is a kill-and-relaunch workflow:
+each reload is a fresh process, so there is no stale in-memory state and no
+need to worry about plugin reload corner cases.
+
+```bash
+gova dev              # watch current module, run .
+gova dev ./cmd/app    # watch current module, run ./cmd/app
+gova dev -- --flag x  # forward flags to the child binary
+```
+
+## Flags
+
+| Flag | Default | Meaning |
+|---|---|---|
+| `--debounce` | `200ms` | Coalesce file-change events within this window |
+| `--state-dir` | `<workdir>/.gova/dev` | Where persisted state is written |
+
+## What gets watched
+
+- Every directory under the working directory, recursively.
+- `.git`, `node_modules`, and `vendor` are skipped.
+- Only writes and creates on `.go` files fire a rebuild. `_test.go` files
+  are ignored.
+- Newly created directories are added to the watch set automatically.
+
+## The reload cycle
+
+1. A change is detected. Events within the debounce window are coalesced.
+2. `go build` compiles the package to a temporary binary.
+3. On build success: the previous child receives SIGTERM. It has two
+   seconds to exit cleanly before SIGKILL.
+4. The new binary starts with the same stdin, stdout, and stderr as the
+   dev server. Log output streams directly to your terminal.
+5. On build failure: the previous child keeps running. The compiler error
+   prints to stderr. Fix the issue and save again.
+
+## Environment
+
+The child process is launched with these environment variables set in
+addition to the inherited environment:
+
+- `GOVA_DEV=1` so application code can branch on dev mode.
+- `GOVA_DEV_STATE` pointing at the state directory. `PersistedState`
+  reads and writes here automatically.
+
+## Preserving state across reloads
+
+In-memory state is reset on every reload. That is a feature, not a bug:
+it avoids the "works on my machine" class of bugs where a stale state
+survives across a code change.
+
+If a piece of state should survive reloads, opt in with
+[`PersistedState`](/docs/state/persisted). The value round-trips through
+a JSON file in the state directory, which `gova dev` wires up for you.

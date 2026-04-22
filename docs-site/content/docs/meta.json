@@ -1,0 +1,22 @@
+{
+  "title": "Gova",
+  "pages": [
+    "index",
+    "---Getting started---",
+    "getting-started",
+    "---Fundamentals---",
+    "concepts",
+    "state",
+    "layout",
+    "widgets",
+    "modifiers",
+    "---Application---",
+    "navigation",
+    "overlays",
+    "theming",
+    "testing",
+    "---Platform and tooling---",
+    "platform",
+    "cli"
+  ]
+}

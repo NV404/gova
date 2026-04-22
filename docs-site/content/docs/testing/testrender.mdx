@@ -1,0 +1,47 @@
+---
+title: TestRender
+description: Render a component headlessly for unit tests.
+---
+
+```go
+func TestRender(root View, opts ...TestOption) *RenderedTree
+```
+
+`TestRender` mounts a component without opening a Fyne window. It resolves
+nested components (including Viewables and Define closures) and returns a
+tree you can query and interact with.
+
+```go
+func TestCounterIncrements(t *testing.T) {
+    tree := gova.TestRender(Counter{})
+
+    if got := tree.FindText(0).Value; got != "count: 0" {
+        t.Fatalf("unexpected initial text: %q", got)
+    }
+
+    tree.FindButtonByLabel("+1").Click()
+
+    if got := tree.FindText(0).Value; got != "count: 1" {
+        t.Fatalf("unexpected text after click: %q", got)
+    }
+}
+```
+
+## Test options
+
+```go
+type TestOption func(*Scope)
+
+func WithStore[T any](key *StoreKey[T], value T) TestOption
+```
+
+`WithStore` pre-provides a store on the test scope so components that
+`UseStore` can read a known initial value.
+
+```go
+tree := gova.TestRender(NotesView{},
+    gova.WithStore(NotesStore, NotesModel{Notes: []Note{
+        {ID: 1, Title: "example"},
+    }}),
+)
+```

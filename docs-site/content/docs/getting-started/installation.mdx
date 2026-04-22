@@ -1,0 +1,72 @@
+---
+title: Installation
+description: Install Gova and its Fyne dependencies.
+---
+
+Gova targets Go 1.26 or newer and depends on Fyne v2, which requires a C
+toolchain and OpenGL bindings on your platform.
+
+## Prerequisites
+
+- **Go** 1.26 or later.
+- **A C compiler.** On macOS this means Xcode Command Line Tools; on Linux
+  install `gcc` through your package manager; on Windows install MinGW or
+  TDM-GCC.
+- **OpenGL development headers.** Fyne documents the exact packages per
+  distribution at [fyne.io/getting-started](https://fyne.io/).
+
+## Add Gova to a module
+
+```bash
+go mod init example.com/myapp
+go get github.com/nv404/gova
+```
+
+That one `go get` pulls in Fyne and its native dependencies transitively. The
+first build on a fresh machine may take a minute while Go compiles the C
+bindings; subsequent builds are incremental.
+
+## Hello world
+
+Create `main.go`:
+
+```go
+package main
+
+import "github.com/nv404/gova"
+
+func main() {
+	gova.Run("Hello", gova.Define(func(s *gova.Scope) gova.View {
+		return gova.Text("Hello, Gova!").Font(gova.Title).Bold()
+	}))
+}
+```
+
+Run it:
+
+```bash
+go run .
+```
+
+A 400 by 600 native window appears with the greeting. If the window does not
+open, the build almost certainly failed because of a missing C toolchain or
+OpenGL dependency; re-read the prerequisites above and consult the Fyne
+platform notes.
+
+## What `Run` does
+
+`Run(title, root)` is the shorthand for `RunWithConfig`. It creates a Fyne
+application, opens a window with the given title, mounts the root view, and
+blocks until the window closes. Use `RunWithConfig` when you need to set the
+window size or provide a theme:
+
+```go
+gova.RunWithConfig(gova.AppConfig{
+	Title:  "My App",
+	Width:  800,
+	Height: 600,
+	Theme:  gova.DarkTheme(),
+}, App)
+```
+
+Width and height default to 400 and 600 when zero.

@@ -1,0 +1,38 @@
+---
+title: The gova CLI
+description: Install the gova binary for dev, build, and run workflows.
+---
+
+`gova` is a small developer tool that wraps the Go toolchain with a workflow
+oriented around Gova apps. It is not required to ship a Gova application,
+but it is the fastest way to iterate during development.
+
+## Install
+
+```bash
+go install github.com/nv404/gova/cmd/gova@latest
+```
+
+This places the `gova` binary in `$GOBIN` (typically `~/go/bin`). Make sure
+that directory is on your `PATH`.
+
+## Subcommands
+
+```text
+gova dev [pkg]      Watch the module and rebuild/restart on change
+gova build [pkg]    Compile pkg to ./bin/<name>
+gova run [pkg]      Build and run pkg once
+gova version        Print the CLI version
+gova help           Show the top-level help message
+```
+
+All three build commands accept a package path. The default is `.` (the
+current directory). Arguments after `--` are forwarded to the compiled
+binary.
+
+```bash
+gova run ./examples/counter -- --verbose
+```
+
+Run `gova <command> --help` for the flags that a specific subcommand
+accepts.

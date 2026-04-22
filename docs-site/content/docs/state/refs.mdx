@@ -1,0 +1,37 @@
+---
+title: Refs
+description: Non-reactive mutable values that persist across renders.
+---
+
+A `RefValue[T]` holds a value that survives re-renders but does not trigger
+one when mutated. Use it for timers, scratch counters, or cached handles to
+resources that the UI does not need to observe.
+
+## API
+
+```go
+func Ref[T any](s *Scope, initial T) *RefValue[T]
+
+func (r *RefValue[T]) Get() T
+func (r *RefValue[T]) Set(v T)
+```
+
+Like `State`, `Ref` keys the value on its call site.
+
+## Example
+
+```go
+var timerRef = gova.Ref(s, (*time.Timer)(nil))
+
+gova.Button("Start", func() {
+    if t := timerRef.Get(); t != nil {
+        t.Stop()
+    }
+    timerRef.Set(time.AfterFunc(5*time.Second, func() {
+        fmt.Println("ping")
+    }))
+})
+```
+
+Because `RefValue` does not schedule re-renders, it is the right choice for
+values that should be preserved but should not cause the view to rebuild.

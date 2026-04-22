@@ -1,0 +1,74 @@
+---
+title: Viewables
+description: Struct-based components with typed props, the canonical way to write reusable views.
+---
+
+A `Viewable` is any value whose type implements the single-method interface:
+
+```go
+type Viewable interface {
+	Body(s *Scope) View
+}
+```
+
+Layout constructors accept a `Viewable` wherever they accept a `View`, so a
+struct literal is a first-class view.
+
+## Declaring a reusable component
+
+```go
+type UserRow struct {
+	User  User
+	OnTap func()
+}
+
+func (v UserRow) Body(s *gova.Scope) gova.View {
+	return gova.HStack(
+		gova.Text(v.User.Name),
+		gova.Spacer(),
+		gova.Text(v.User.Email).Color(gova.Secondary),
+	).OnTap(v.OnTap)
+}
+```
+
+## Using it
+
+```go
+UserRow{User: u, OnTap: func() { nav.Push(DetailView{User: u}) }}
+```
+
+No wrapper call, no `Render(...)` step. The struct value is passed directly
+to `VStack`, `List`, or any other constructor.
+
+## Rules
+
+- **Typed props.** Fields are your component's parameters. Named arguments
+  and Go zero values replace any option builder pattern.
+- **Scope in Body.** `Body(s *Scope) View` is still called with an explicit
+  scope. Do not try to hide it in package-level state; tests and multi-window
+  apps depend on it.
+- **Pure construction.** Field evaluation is eager; pass a `func() View` as a
+  prop if a child view is expensive to construct and you want to defer it
+  (see `NavLink` for an example).
+
+## When to reach for `Define`
+
+`Define` is fine for:
+
+- The application root, which typically has no props.
+- Inline helpers too small to live in their own struct.
+
+Everything else should be a `Viewable`, because struct fields are the only
+component parameter mechanism Gova provides.
+
+## Error boundaries
+
+Wrap a Viewable in `ErrorBoundary` to catch panics during `Body`:
+
+```go
+gova.ErrorBoundary(UserRow{User: u}, func(err error) gova.View {
+	return gova.Text(err.Error()).Color(gova.Destructive)
+})
+```
+
+See [Overlays and errors](/docs/overlays) for details.

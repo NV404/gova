@@ -1,0 +1,37 @@
+# Binaries and build output
+bin/
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Test binaries
+*.test
+*.out
+
+# Go workspace
+go.work
+go.work.sum
+
+# IDE / editor
+.idea/
+.vscode/
+*.swp
+.DS_Store
+
+# Docs site
+docs-site/.next/
+docs-site/node_modules/
+docs-site/out/
+docs-site/.source/
+
+# Dev-reload persisted state
+.gova/
+
+# Example build artifacts (root-level binaries named after example packages)
+/counter
+/todo
+/notes
+/themed
+/components
+/dialogs

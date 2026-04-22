@@ -1,0 +1,23 @@
+---
+title: Grid
+description: Fixed-column grid layout.
+---
+
+`Grid` arranges children in a fixed number of columns, row by row.
+
+```go
+func Grid(columns int, children ...any) *viewNode
+```
+
+```go
+gova.Grid(3,
+    tile1, tile2, tile3,
+    tile4, tile5, tile6,
+)
+```
+
+Pass fewer than `columns * rows` children and the trailing cells are left
+empty. Each cell takes an equal share of the available width.
+
+Column count defaults to two at the bridge level if you pass zero or a
+negative value, but passing sensible values up front is clearer.

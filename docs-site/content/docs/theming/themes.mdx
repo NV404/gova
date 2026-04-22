@@ -1,0 +1,76 @@
+---
+title: Themes
+description: Light, dark, system, and custom color palettes.
+---
+
+A `Theme` bundles a variant (light, dark, or system), an accent color, and
+an optional override map for semantic color names.
+
+```go
+type ThemeVariant int
+const (
+    ThemeLight ThemeVariant = iota
+    ThemeDark
+    ThemeSystem
+)
+
+type Theme struct {
+    Variant ThemeVariant
+    Accent  color.Color
+    Colors  map[ThemeColorName]color.Color
+}
+```
+
+## Constructors
+
+```go
+func LightTheme() *Theme
+func DarkTheme() *Theme
+func SystemTheme() *Theme
+
+func (t *Theme) WithAccent(c color.Color) *Theme
+func (t *Theme) SetColor(name ThemeColorName, c color.Color) *Theme
+```
+
+```go
+theme := gova.LightTheme().
+    WithAccent(gova.Hex("#FF3B30")).
+    SetColor(gova.ColorSurface, gova.Hex("#FAFAFA"))
+
+gova.RunWithConfig(gova.AppConfig{
+    Title: "Themed",
+    Theme: theme,
+}, App)
+```
+
+## Theme color names
+
+```go
+const (
+    ColorPrimary ThemeColorName = iota
+    ColorBackground
+    ColorForeground
+    ColorButton
+    ColorError
+    ColorSuccess
+    ColorWarning
+    ColorInputBackground
+    ColorInputBorder
+    ColorDisabled
+    ColorFocus
+    ColorSelection
+    ColorHover
+    ColorSecondary
+    ColorSurface
+    ColorAccent
+    ColorBorder
+)
+```
+
+The renderer resolves the semantic color variables (`Primary`, `Secondary`,
+and so on) by looking up the matching `ThemeColorName` in `Theme.Colors`.
+If there is no entry the renderer falls back to sensible built-in values
+that differ between light and dark variants.
+
+See [Color and background](/docs/modifiers/color) for how the modifiers
+consume these colors.

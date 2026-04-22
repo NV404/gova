@@ -1,0 +1,81 @@
+---
+title: Querying the tree
+description: Find nodes by index, label, or kind.
+---
+
+```go
+func (rt *RenderedTree) FindText(n int) TextResult
+func (rt *RenderedTree) FindButton(n int) ButtonResult
+func (rt *RenderedTree) FindButtonByLabel(label string) ButtonResult
+func (rt *RenderedTree) FindToggle(n int) ToggleResult
+func (rt *RenderedTree) FindTextField(n int) TextFieldResult
+func (rt *RenderedTree) NodeCount(kind string) int
+func (rt *RenderedTree) State(key string) any
+```
+
+Each `FindX` method walks the tree depth-first and returns the nth node of
+the matching kind. Indexing is zero-based.
+
+## Result types
+
+Every result type has a boolean `Exists()` so you can assert presence.
+
+### TextResult
+
+```go
+type TextResult struct {
+    Value string
+    // Exists() bool
+}
+```
+
+### ButtonResult
+
+```go
+type ButtonResult struct {
+    Label string
+    // Exists() bool
+    // Click()
+}
+```
+
+### ToggleResult
+
+```go
+type ToggleResult struct {
+    Label   string
+    Checked bool
+    // Exists() bool
+    // Toggle()
+}
+```
+
+### TextFieldResult
+
+```go
+type TextFieldResult struct {
+    Placeholder string
+    // Exists() bool
+    // Text() string
+    // Type(text string)
+    // Submit()
+}
+```
+
+## Counting nodes
+
+`NodeCount` takes a string kind name and returns the total count. Accepted
+kinds are `"Text"`, `"Button"`, `"VStack"`, `"HStack"`, `"TextField"`,
+`"Toggle"`, `"List"`, `"Spacer"`, and `"Divider"`.
+
+```go
+if tree.NodeCount("Button") != 3 {
+    t.Fatalf("expected three buttons")
+}
+```
+
+## Reading state
+
+`State(key)` looks up a raw entry in the test scope by its internal string
+key. This is rarely useful outside framework tests because state is
+normally keyed by call site; prefer querying the visible output.

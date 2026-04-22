@@ -1,0 +1,51 @@
+---
+title: UseNav
+description: A handle for pushing and popping views within the enclosing NavStack.
+---
+
+```go
+func UseNav(s *Scope) *Nav
+```
+
+`UseNav` returns the `*Nav` handle for the nearest enclosing `NavStack`.
+Called outside a `NavStack`, it returns a no-op handle so you do not have
+to nil-check.
+
+## Nav methods
+
+```go
+func (n *Nav) Push(v any)       // View or Viewable
+func (n *Nav) Pop()
+func (n *Nav) PopToRoot()
+func (n *Nav) Replace(v any)
+func (n *Nav) CanPop() bool
+func (n *Nav) Depth() int
+```
+
+- `Push` appends a view to the stack; that view becomes the active screen.
+- `Pop` removes the top entry. If only the root is on the stack, `Pop` is a
+  no-op.
+- `PopToRoot` removes everything above the root.
+- `Replace` swaps the top of the stack in place, without animating a push.
+- `CanPop` returns true whenever there is more than one view on the stack.
+- `Depth` returns the number of views currently on the stack.
+
+## Example
+
+```go
+type DetailView struct{ ID int }
+
+func (v DetailView) Body(s *gova.Scope) gova.View {
+    nav := gova.UseNav(s)
+
+    return gova.VStack(
+        gova.Text(fmt.Sprintf("Item %d", v.ID)),
+        gova.Button("Back", nav.Pop),
+    )
+}
+```
+
+## Threading
+
+`Push`, `Pop`, `Replace`, and `PopToRoot` take an internal lock and then
+update a `StateValue[[]View]`; they are safe to call from any goroutine.

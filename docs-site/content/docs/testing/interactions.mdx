@@ -1,0 +1,54 @@
+---
+title: Simulating interactions
+description: Tap buttons, flip toggles, and type into fields.
+---
+
+Result types carry enough state to simulate common interactions. Every
+interaction triggers a re-render of the tree so subsequent queries see the
+new state.
+
+## Click a button
+
+```go
+btn := tree.FindButtonByLabel("Add")
+btn.Click()
+```
+
+`Click` calls the handler attached to the button and then rerenders.
+
+## Toggle a checkbox
+
+```go
+tog := tree.FindToggle(0)
+tog.Toggle()
+```
+
+`Toggle` flips the current checked value and invokes the `OnChange`
+handler.
+
+## Type into a text field
+
+```go
+tf := tree.FindTextField(0)
+tf.Type("hello")
+// tf.Text() == "hello"
+tf.Submit()
+```
+
+`Type` updates the bound `*StateValue[string]` and rerenders. `Submit`
+rerenders without changing the value; it is a hook for triggering an
+`OnSubmit`-style interaction in components that observe the state.
+
+## Rerender manually
+
+`Rerender` forces a render pass. Useful when state is mutated by code
+outside the tree:
+
+```go
+store := someStateValue
+store.Set("changed")
+tree.Rerender()
+```
+
+Most of the time the `Click`, `Toggle`, and `Type` methods handle this for
+you.

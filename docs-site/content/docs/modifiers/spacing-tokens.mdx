@@ -1,0 +1,29 @@
+---
+title: Spacing tokens
+description: Named spacing values for consistent layouts.
+---
+
+Gova exposes a small set of spacing constants. Prefer these over raw
+numbers so the whole application stays on one rhythm.
+
+```go
+const (
+    SpaceXS float32 = 4
+    SpaceSM float32 = 8
+    SpaceMD float32 = 16
+    SpaceLG float32 = 24
+    SpaceXL float32 = 32
+)
+```
+
+## Usage
+
+```go
+gova.VStack(
+    gova.Text("Title").Font(gova.Title),
+    gova.Text("Subtitle").Color(gova.Secondary),
+).Spacing(gova.SpaceSM).Padding(gova.SpaceLG)
+```
+
+Any `float32` works wherever a spacing token does, so you can still pass a
+raw number when a design calls for it.

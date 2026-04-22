@@ -1,0 +1,16 @@
+{
+  "title": "Widgets",
+  "pages": [
+    "text",
+    "button",
+    "textfield",
+    "toggle",
+    "slider",
+    "picker",
+    "progress",
+    "image",
+    "form",
+    "divider",
+    "tabview"
+  ]
+}

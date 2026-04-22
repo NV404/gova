@@ -1,0 +1,44 @@
+---
+title: Scaffold
+description: Border layout with a required center and optional edges.
+---
+
+`Scaffold` is the canonical border layout. The center view is the required
+constructor argument; top, bottom, leading, and trailing edges are optional
+and attached via chain methods.
+
+```go
+func Scaffold(center any) *viewNode
+
+func (n *viewNode) Top(v any) *viewNode
+func (n *viewNode) Bottom(v any) *viewNode
+func (n *viewNode) Leading(v any) *viewNode
+func (n *viewNode) Trailing(v any) *viewNode
+```
+
+## Example
+
+```go
+gova.Scaffold(
+    gova.ScrollView(content),
+).Top(
+    gova.Text("Title").Font(gova.Title).Bold(),
+).Bottom(
+    gova.HStack(
+        gova.TextField(input).Placeholder("...").Grow(),
+        gova.Button("Send", onSend),
+    ),
+)
+```
+
+## Why Scaffold, not Border
+
+A positional `Border(top, bottom, leading, trailing, center)` is easy to
+write wrong. Named chain methods make intent explicit and allow omitting
+edges without `nil` placeholders.
+
+## Sizing
+
+The center occupies all space the edges do not claim. Each edge uses its
+natural size along the axis it pins against. If you need more complex
+layout, nest a `VStack` or `HStack` inside the center.

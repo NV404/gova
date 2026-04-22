@@ -1,0 +1,63 @@
+---
+title: Views
+description: The View interface and the viewNode value that implements it.
+---
+
+Everything you render in Gova is a `View`. The interface is deliberately
+small:
+
+```go
+type View interface {
+	viewNode() *viewNode
+}
+```
+
+`viewNode` is an internal tagged union that every widget constructor returns.
+You do not construct one directly; instead you call functions like `Text`,
+`Button`, `VStack`, or `Scaffold`, each of which returns a `*viewNode`. The
+pointer also satisfies `View`, so you can pass it anywhere a `View` is
+expected.
+
+## Modifiers return the same node
+
+Every modifier method has the signature `func (n *viewNode) X(...) *viewNode`
+and returns the receiver so chains are possible:
+
+```go
+gova.Text("Hello").
+    Font(gova.Title).
+    Bold().
+    Color(gova.Accent).
+    Padding(gova.SpaceMD)
+```
+
+Modifiers mutate the underlying node rather than allocating a new one. The
+side effect is that the `*viewNode` is not safe to mutate from multiple
+goroutines; build your view tree on the render goroutine only.
+
+## Anything a constructor accepts is a "viewable argument"
+
+Layout constructors such as `VStack`, `HStack`, `ZStack`, `ScrollView`,
+`Group`, `Scaffold`, and list helpers accept `any` so they can take three
+different shapes of input:
+
+- A `View` (the usual case: any `*viewNode`).
+- A [`Viewable`](/docs/concepts/viewables) struct value with a `Body` method.
+- `nil`, which is silently filtered out.
+
+Anything else panics at the call site with a clear message. This is the only
+"magic" in the view tree; see [Design philosophy](/docs/concepts/components)
+for why.
+
+## Giving a node a stable key
+
+Lists identify children by key to avoid tearing when items are added or
+removed. `Key` attaches a key to any node:
+
+```go
+gova.Text(name).Key(user.ID)
+```
+
+Most of the time you do not call `Key` yourself. `List`, `ListOf`, and
+`ForEach` set the key for you based on the key function or the auto-resolved
+`ID` field.

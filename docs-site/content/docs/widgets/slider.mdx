@@ -1,0 +1,36 @@
+---
+title: Slider
+description: Continuous value slider.
+---
+
+```go
+func Slider(arg any) *viewNode
+
+func (n *viewNode) Range(min, max float64) *viewNode
+func (n *viewNode) Step(s float64) *viewNode
+func (n *viewNode) OnSliderChange(fn func(float64)) *viewNode
+```
+
+`Slider` accepts:
+
+- `*StateValue[float64]` for reactive binding.
+- `float64` for a static slider.
+- `int`, converted to `float64`.
+
+Any other argument panics.
+
+The default range is `0..1`. Override with `.Range(min, max)`.
+
+```go
+volume := gova.State(s, 50.0)
+
+gova.Slider(volume).
+    Range(0, 100).
+    Step(5).
+    OnSliderChange(func(v float64) {
+        audio.SetVolume(v / 100)
+    })
+```
+
+`OnSliderChange` fires continuously as the user drags. Use it for live
+preview; debounce in your handler if the downstream work is expensive.

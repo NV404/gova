@@ -1,0 +1,52 @@
+---
+title: When, Else, and Show
+description: Conditional rendering helpers.
+---
+
+Conditional branches are handled by two helpers, `When` (lazy) and `Show`
+(eager), with an optional `.Else` chain for either/or rendering.
+
+## When
+
+```go
+func When(cond bool, fn func() View) *viewNode
+func (n *viewNode) Else(fn func() View) *viewNode
+```
+
+`When` evaluates the true branch only if `cond` is true. Prefer it when the
+branch constructs anything non-trivial.
+
+```go
+gova.When(hasError, func() gova.View {
+    return gova.Text(errMsg).Color(gova.Destructive)
+})
+```
+
+Chain `.Else` for an either/or:
+
+```go
+gova.When(isDone, func() gova.View {
+    return gova.Text("Done").Color(gova.Success)
+}).Else(func() gova.View {
+    return gova.Text("Pending").Color(gova.Secondary)
+})
+```
+
+If the condition is false and there is no `.Else`, `When` renders an empty
+`Group` node that contributes no visible output but still occupies a slot in
+the parent layout for stable identity.
+
+## Show
+
+```go
+func Show(cond bool, v any) *viewNode
+```
+
+`Show` evaluates the view eagerly; use it only when the view is cheap to
+construct. It is a shorthand for `When(cond, func() View { return v })`.
+
+```go
+gova.Show(isLoading, gova.ProgressView())
+```
+
+If `cond` is false, `Show` returns an empty `Group` node.

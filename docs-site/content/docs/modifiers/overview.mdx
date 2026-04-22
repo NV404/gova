@@ -1,0 +1,41 @@
+---
+title: Overview
+description: How modifier chains compose.
+---
+
+Every widget constructor returns a `*viewNode`. Modifiers are methods on
+that node that mutate it in place and return the same pointer so they can
+be chained.
+
+```go
+gova.Text("Welcome").
+    Font(gova.Title).
+    Bold().
+    Color(gova.Accent).
+    Padding(gova.SpaceMD)
+```
+
+## Composition rules
+
+Modifier order does not affect the final rendering. The bridge applies
+them with a fixed semantic:
+
+- **Padding** is applied outside the visual box.
+- **Background** is painted behind the visual box, inside the padding.
+- **Stroke** (border) traces the visual box and respects `CornerRadius`.
+- **Shadow** is cast by the visual box.
+- **OnTap** wraps the outermost visual to make the whole box tappable.
+
+You can nest layouts to change composition explicitly when the fixed
+semantics do not fit a design.
+
+## Widgets versus layouts
+
+Not every modifier applies to every node. `Color` on a `Text` sets its
+foreground color; `Color` on a `Button` sets its label color; `Color` on a
+`VStack` is currently silently ignored. `Placeholder` is only meaningful on
+a `TextField`. The API does not prevent the misuse but in practice modifier
+methods check that the relevant data struct is present before doing
+anything.
+
+Refer to the individual modifier pages for specifics.

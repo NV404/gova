@@ -1,0 +1,42 @@
+---
+title: Typography
+description: Font styles and text weight.
+---
+
+```go
+func (n *viewNode) Font(style FontStyle) *viewNode
+func (n *viewNode) Bold() *viewNode
+func (n *viewNode) Italic() *viewNode
+```
+
+## Font styles
+
+```go
+const (
+    Body   FontStyle = iota
+    Title
+    Title2
+    Title3
+    Caption
+    Mono
+)
+```
+
+The named styles map to Fyne theme sizes so they track the platform theme.
+
+```go
+gova.Text("Welcome").Font(gova.Title).Bold()
+gova.Text("Subtitle").Font(gova.Title3)
+gova.Text("Note").Font(gova.Caption).Color(gova.Secondary)
+gova.Text("let x = 1").Font(gova.Mono)
+```
+
+## Bold and italic
+
+`Bold` and `Italic` are independent flags. They apply to `Text`, and their
+effect in a `Button` label depends on the underlying Fyne widget.
+
+```go
+gova.Text("Important").Bold()
+gova.Text("Aside").Italic()
+```

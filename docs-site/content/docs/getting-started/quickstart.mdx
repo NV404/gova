@@ -1,0 +1,155 @@
+---
+title: Quickstart
+description: Build a small todo app and learn the core Gova patterns along the way.
+---
+
+This page walks through a working todo application. Every concept it uses is
+covered in depth later in the docs; the goal here is to see how the pieces fit
+together.
+
+## The model
+
+The model is plain Go. Gova does not require special base classes or macros.
+
+```go
+package main
+
+import (
+	"fmt"
+
+	"github.com/nv404/gova"
+)
+
+type Todo struct {
+	ID   int
+	Text string
+	Done bool
+}
+
+type Model struct {
+	Todos  []Todo
+	NextID int
+}
+```
+
+A `State[Model]` holds the entire application state. Pure functions mutate a
+copy of the model; the state broadcasts the change.
+
+```go
+func addTodo(m Model, text string) Model {
+	m.Todos = append(m.Todos, Todo{ID: m.NextID, Text: text})
+	m.NextID++
+	return m
+}
+
+func toggleTodo(m Model, id int, done bool) Model {
+	for i := range m.Todos {
+		if m.Todos[i].ID == id {
+			m.Todos[i].Done = done
+		}
+	}
+	return m
+}
+
+func removeTodo(m Model, id int) Model {
+	for i := range m.Todos {
+		if m.Todos[i].ID == id {
+			m.Todos = append(m.Todos[:i], m.Todos[i+1:]...)
+			return m
+		}
+	}
+	return m
+}
+```
+
+## The view
+
+The root view is a closure component: a call to `Define`. Any state declared
+inside the closure is keyed by call site, so rerenders reuse the same
+`StateValue`.
+
+```go
+var TodoApp = gova.Define(func(s *gova.Scope) gova.View {
+	model := gova.State(s, Model{NextID: 1})
+	input := gova.State(s, "")
+
+	add := func() {
+		text := input.Get()
+		if text == "" {
+			return
+		}
+		model.Update(func(m Model) Model { return addTodo(m, text) })
+		input.Set("")
+	}
+
+	todos := gova.DerivedList(model, func(m Model) []Todo { return m.Todos })
+	itemCount := gova.Derived(model, func(m Model) string {
+		return fmt.Sprintf("%d items", len(m.Todos))
+	})
+
+	return gova.Scaffold(
+		gova.ScrollView(
+			gova.List(todos,
+				func(t Todo) int { return t.ID },
+				func(i int, todo Todo) gova.View {
+					id := todo.ID
+					return gova.HStack(
+						gova.Toggle(todo.Done).OnChange(func(done bool) {
+							model.Update(func(m Model) Model {
+								return toggleTodo(m, id, done)
+							})
+						}),
+						gova.Text(todo.Text),
+						gova.Spacer(),
+						gova.Button("Delete", func() {
+							model.Update(func(m Model) Model {
+								return removeTodo(m, id)
+							})
+						}).Color(gova.Red),
+					)
+				},
+			),
+		),
+	).Top(
+		gova.VStack(
+			gova.Text("Todos").Font(gova.Title).Bold(),
+			gova.HStack(
+				gova.TextField(input).
+					Placeholder("What needs to be done?").
+					OnSubmit(func(val string) { add() }).
+					MinHeight(36).
+					Grow(),
+				gova.Button("Add", add),
+			).Spacing(gova.SpaceSM),
+		).Spacing(gova.SpaceMD).Padding(gova.SpaceLG),
+	).Bottom(
+		gova.Text(itemCount).Font(gova.Caption).Color(gova.Secondary).Padding(gova.SpaceLG),
+	)
+})
+
+func main() { gova.Run("Todo App", TodoApp) }
+```
+
+## What to notice
+
+- **`State(s, initial)` twice, no keys.** Each call site is its own identity;
+  the framework walks `runtime.Caller` so you never write string keys.
+- **`DerivedList` and `Derived`.** Both return reactive values that track the
+  model. `DerivedList[M, T]` returns a `*StateValue[[]T]` you can pass to
+  `List`; `Derived[T, U]` returns a `Signal[U]` that `Text` accepts directly.
+- **`Scaffold` with `.Top()` and `.Bottom()`.** Border-style layout without
+  the ambiguity of positional arguments.
+- **`.Grow()` on the `TextField`.** Inside an `HStack`, the grow child fills
+  the remaining horizontal space; siblings pack at natural size.
+- **`Toggle(todo.Done)`.** Toggles accept either a `*StateValue[bool]` or a
+  plain `bool`. Inside a `List` row the latter is usually what you want
+  because the list item is transient.
+
+## Running the app
+
+Save the file and run `go run .`. You should see a window with a title, an
+input with an Add button, and a scrolling list of todos below. Try adding,
+toggling, and deleting. Resize the window to confirm the input grows with it.
+
+Once this is working, continue with [Core concepts](/docs/concepts) to learn
+what `View`, `Viewable`, and `Scope` mean precisely.

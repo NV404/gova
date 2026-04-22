@@ -1,0 +1,46 @@
+---
+title: Alerts
+description: Modal alert dialogs.
+---
+
+```go
+func UseAlert(s *Scope) func(title, message string, actions ...AlertAction)
+
+type AlertAction struct {
+    Label  string
+    Style  ActionStyle
+    Action func()
+}
+
+type ActionStyle int
+const (
+    ActionDefault ActionStyle = iota
+    ActionCancel
+    ActionDestructive
+)
+```
+
+`UseAlert` returns a function you call from event handlers to present a
+modal alert. Call it with a title, message, and any number of actions.
+
+```go
+func (v DeleteButton) Body(s *gova.Scope) gova.View {
+    showAlert := gova.UseAlert(s)
+
+    return gova.Button("Delete", func() {
+        showAlert("Are you sure?", "This cannot be undone.",
+            gova.AlertAction{Label: "Cancel", Style: gova.ActionCancel},
+            gova.AlertAction{
+                Label: "Delete",
+                Style: gova.ActionDestructive,
+                Action: func() {
+                    performDelete()
+                },
+            },
+        )
+    })
+}
+```
+
+An alert blocks input until an action is selected. The `Action` callback
+runs after the alert is dismissed.

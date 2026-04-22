@@ -1,0 +1,50 @@
+---
+title: Text
+description: Static and reactive text.
+---
+
+```go
+func Text(content any) *viewNode
+```
+
+`Text` accepts three argument shapes:
+
+- `string`: renders as static text.
+- `Signal[string]`: renders reactively (produced by `StateValue.Format` or
+  `Derived`).
+- Any other value: converted via `fmt.Sprint(content)` and rendered as static
+  text. This is convenient for printing numbers or structs but loses
+  reactivity.
+
+## Styling
+
+Text accepts every modifier in the core set:
+
+```go
+gova.Text("Welcome").
+    Font(gova.Title).
+    Bold().
+    Color(gova.Accent).
+    Padding(gova.SpaceSM)
+```
+
+See [Modifiers](/docs/modifiers) for the full list. Font styles available
+out of the box: `Body`, `Title`, `Title2`, `Title3`, `Caption`, `Mono`.
+
+## Reactive content
+
+```go
+count := gova.State(s, 0)
+
+gova.Text(count.Format("count: %d"))
+
+gova.Text(gova.Derived(count, func(n int) string {
+    if n == 1 {
+        return "1 item"
+    }
+    return fmt.Sprintf("%d items", n)
+}))
+```
+
+The text patches in place when the underlying state changes; the view does
+not need to rerender for the label to update.

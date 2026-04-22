@@ -1,0 +1,29 @@
+---
+title: OnTap
+description: Make any view tappable.
+---
+
+```go
+func (n *viewNode) OnTap(fn func()) *viewNode
+```
+
+`OnTap` makes any non-button view tappable. Applying it to a `Button`
+panics, because a `Button` already carries a handler through its
+constructor.
+
+```go
+gova.HStack(
+    gova.Text(note.Title),
+    gova.Spacer(),
+    gova.Text(note.Date).Color(gova.Secondary),
+).OnTap(func() {
+    nav.Push(NoteDetail{Note: note})
+})
+```
+
+The handler runs on the UI goroutine. For screen reader and keyboard
+parity, a tappable view is also marked with `RoleButton` when you pair it
+with `AccessibilityRole`; the framework does not set that automatically.
+
+Use `NavLink` when the only purpose of the tap is to push a navigation
+destination; it wires the tap, the role, and the label in one call.

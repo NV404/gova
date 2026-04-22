@@ -1,0 +1,18 @@
+---
+title: gova run
+description: Build and run a Gova binary once.
+---
+
+`gova run` compiles the package to a temp directory and executes it
+once. It exits with the child process's exit code. There is no watch
+loop; use [`gova dev`](/docs/cli/dev) for that.
+
+```bash
+gova run
+gova run ./cmd/app
+gova run -- --verbose
+```
+
+It is roughly equivalent to `go run`, but keeps the build artifacts and
+run step separate, which helps when a dev wants to keep the last
+compiled binary around for debugging.

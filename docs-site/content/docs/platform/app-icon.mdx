@@ -1,0 +1,100 @@
+---
+title: Application icon
+description: Set the window, dock, and taskbar icon for your Gova app.
+---
+
+The `Icon` field on `AppConfig` is the one place to configure the icon
+shown by the OS while your app is running: macOS dock, Windows taskbar
+and title bar, Linux window manager.
+
+```go
+g.RunWithConfig(g.AppConfig{
+    Title: "Notes",
+    Icon:  "assets/icon.png",
+}, App)
+```
+
+Missing files are a silent no-op, so a forgotten asset never crashes
+the app — the OS simply shows its default placeholder.
+
+On macOS, Gova calls `[NSApp setApplicationIconImage:]` directly, so
+the dock icon updates for unbundled binaries too — including processes
+started by `go run`. Fyne's own `SetIcon` does **not** do this, so if
+you set the icon through Fyne alone the dock keeps the default Go
+terminal icon.
+
+## Recommended asset
+
+One square PNG with transparency, either **256×256** or **512×512**.
+Fyne scales the same resource up and down for every surface (dock,
+taskbar, title bar, about box), so there is no need to ship multiple
+sizes at runtime.
+
+## Embedding with `go:embed`
+
+Shipping a single-file binary is cleaner than a binary plus a sibling
+PNG. Use `IconBytes` with `embed.FS`:
+
+```go
+package main
+
+import (
+    _ "embed"
+
+    g "github.com/nv404/gova"
+)
+
+//go:embed assets/icon.png
+var appIcon []byte
+
+func main() {
+    g.RunWithConfig(g.AppConfig{
+        Title:     "Notes",
+        IconBytes: appIcon,
+    }, App)
+}
+```
+
+`IconBytes` takes precedence over `Icon` when both are set.
+
+## Bundling for distribution
+
+The runtime icon above is what the OS shows *while the app is
+running*. It is **not** what the Finder or Start menu shows for the
+binary itself — that comes from platform bundle metadata.
+
+**macOS (`.app` bundle).** Use Fyne's packager:
+
+```bash
+go install fyne.io/tools/cmd/fyne@latest
+fyne package -os darwin -icon assets/icon.png -name "Notes"
+```
+
+This produces `Notes.app` with the icon embedded as `Icon.icns`.
+
+**Windows (`.exe` resource).**
+
+```bash
+fyne package -os windows -icon assets/icon.png -name "Notes"
+```
+
+Embeds the PNG as a Windows resource so Explorer shows it.
+
+**Linux (`.desktop` + tarball).**
+
+```bash
+fyne package -os linux -icon assets/icon.png -name "Notes"
+```
+
+Produces a tarball with a `.desktop` file pointing at the icon.
+
+You usually want **both** `AppConfig.Icon` (for the running process)
+and the packaged icon (for the binary on disk). They can be the same
+PNG.
+
+## Changing the icon at runtime
+
+There is no supported API for replacing the icon after `Run` has
+started. If you need per-window icons (a browser-style favicon), open
+an issue describing the use case — most desktop conventions push you
+toward a single stable identity instead.

@@ -1,0 +1,69 @@
+---
+title: Picker
+description: Dropdown selector for a set of options.
+---
+
+Gova has two picker variants: a simple string picker and a generic typed
+picker.
+
+## Picker
+
+```go
+func Picker(options []string, selected int) *viewNode
+func (n *viewNode) OnPickerChange(fn func(string)) *viewNode
+```
+
+```go
+choice := gova.State(s, 0)
+
+gova.Picker([]string{"Low", "Medium", "High"}, choice.Get()).
+    OnPickerChange(func(s string) {
+        switch s {
+        case "Low":
+            choice.Set(0)
+        case "Medium":
+            choice.Set(1)
+        case "High":
+            choice.Set(2)
+        }
+    })
+```
+
+The `selected` argument is the initial index. `OnPickerChange` fires with
+the newly selected string when the user changes selection.
+
+## PickerOf
+
+```go
+func PickerOf[T comparable](
+    state *StateValue[T],
+    options []T,
+    label func(T) string,
+) *viewNode
+```
+
+`PickerOf` is a typed wrapper that binds to a state of any comparable type.
+It renders the options with `label(o)` and writes the selected option back
+to `state`.
+
+```go
+type Priority int
+const (
+    Low Priority = iota
+    Medium
+    High
+)
+
+func (p Priority) String() string {
+    return [...]string{"Low", "Medium", "High"}[p]
+}
+
+priority := gova.State(s, Medium)
+
+gova.PickerOf(priority, []Priority{Low, Medium, High}, func(p Priority) string {
+    return p.String()
+})
+```
+
+If the current state value is not in `options`, the first option is selected
+and written back.

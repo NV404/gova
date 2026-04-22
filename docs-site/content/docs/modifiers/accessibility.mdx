@@ -1,0 +1,34 @@
+---
+title: Accessibility
+description: Labels, hints, and roles for assistive technologies.
+---
+
+```go
+func (n *viewNode) AccessibilityLabel(s string) *viewNode
+func (n *viewNode) AccessibilityHint(s string) *viewNode
+func (n *viewNode) AccessibilityRole(r AccessibilityRole) *viewNode
+
+type AccessibilityRole int
+const (
+    RoleNone AccessibilityRole = iota
+    RoleButton
+    RoleLink
+    RoleImage
+    RoleHeader
+)
+```
+
+```go
+gova.Image("avatar.png").
+    AccessibilityLabel("Profile picture").
+    AccessibilityHint("Double tap to edit")
+
+gova.Text("Settings").
+    Font(gova.Title).
+    AccessibilityRole(gova.RoleHeader)
+```
+
+`AccessibilityLabel` is read by the screen reader in place of any visible
+text. `AccessibilityHint` is additional context announced after the label.
+`AccessibilityRole` provides a semantic role hint. `NavLink` sets
+`RoleLink` and the label automatically.

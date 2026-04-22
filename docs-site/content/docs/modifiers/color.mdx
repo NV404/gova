@@ -1,0 +1,65 @@
+---
+title: Color and background
+description: Foreground and background colors with static and semantic variants.
+---
+
+```go
+func (n *viewNode) Color(c any) *viewNode
+func (n *viewNode) Background(c any) *viewNode
+```
+
+Both modifiers accept either a concrete `color.Color` or a semantic color
+sentinel. Semantic sentinels are resolved against the active theme at
+render time.
+
+## Static colors
+
+Fixed RGBA values that do not adapt to theme:
+
+```go
+Red, Blue, Green, Orange, Purple, Gray, White, Black
+```
+
+```go
+gova.Text("Error").Color(gova.Red)
+gova.VStack(...).Background(gova.White)
+```
+
+## Semantic colors
+
+Theme-resolved values. Use these when you want the color to flip under dark
+mode automatically:
+
+```go
+Primary      // foreground text
+Secondary    // muted text
+Background   // surface background
+Surface      // card or elevated background
+Accent       // theme accent color
+Destructive  // error or delete actions
+Success
+Warning
+BorderColor  // borders and dividers
+```
+
+```go
+gova.Text("Heading").Color(gova.Primary)
+gova.Text("Subtitle").Color(gova.Secondary)
+gova.Button("Delete", onDel).Color(gova.Destructive)
+```
+
+The sentinel values are plain `color.Color` instances, so the modifier
+signature stays `any`; the renderer detects them and looks up the theme
+entry, falling back to sensible defaults if none is configured.
+
+## Hex literals
+
+For one-off static colors pick via hex:
+
+```go
+gova.Hex("#FF3B30")     // RGB, alpha defaults to FF
+gova.Hex("#000000AA")   // RGB + alpha
+```
+
+`Hex` returns a `color.Color`. An invalid or wrong-length string returns
+opaque black (no panic).

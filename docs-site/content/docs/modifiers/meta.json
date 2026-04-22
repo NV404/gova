@@ -1,0 +1,13 @@
+{
+  "title": "Modifiers",
+  "pages": [
+    "overview",
+    "padding-and-frame",
+    "color",
+    "typography",
+    "visual",
+    "interaction",
+    "accessibility",
+    "spacing-tokens"
+  ]
+}

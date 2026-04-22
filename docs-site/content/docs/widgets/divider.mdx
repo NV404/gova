@@ -1,0 +1,20 @@
+---
+title: Divider
+description: Thin visual separator.
+---
+
+```go
+func Divider() *viewNode
+```
+
+A `Divider` is a single-pixel line that adapts to the stack orientation it
+sits in.
+
+```go
+gova.VStack(
+    gova.Text("Settings").Font(gova.Title),
+    gova.Divider(),
+    gova.Toggle(darkMode).Label("Dark Mode"),
+    gova.Toggle(notifications).Label("Notifications"),
+)
+```

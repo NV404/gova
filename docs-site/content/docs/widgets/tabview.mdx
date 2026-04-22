@@ -1,0 +1,45 @@
+---
+title: TabView
+description: Tabbed container for switching between top-level views.
+---
+
+```go
+func TabView(tabs ...TabEntry) *viewNode
+func Tab(label, icon string, content View) TabEntry
+
+type TabEntry struct {
+    Label   string
+    Icon    string
+    Content View
+}
+
+func (n *viewNode) Placement(p TabPlacement) *viewNode
+```
+
+```go
+gova.TabView(
+    gova.Tab("Notes", "", NotesTab),
+    gova.Tab("Stats", "", StatsTab),
+    gova.Tab("Errors", "", ErrorTab),
+).Placement(gova.TabBottom)
+```
+
+## Placement
+
+```go
+const (
+    TabTop TabPlacement = iota
+    TabBottom
+    TabLeading
+    TabTrailing
+)
+```
+
+`Placement` moves the tab bar to the requested edge. The default is
+`TabTop`.
+
+## Icons
+
+The `icon` argument on `Tab` is reserved for a string path or name. It is
+passed through to the underlying Fyne tab item; implementation is available
+but the current examples leave it empty.

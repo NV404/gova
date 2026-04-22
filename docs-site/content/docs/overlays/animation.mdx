@@ -1,0 +1,69 @@
+---
+title: Animation
+description: Time-based animations driven from a component.
+---
+
+```go
+func Animate(duration time.Duration) Animation
+
+func (a Animation) WithCurve(c EaseCurve) Animation
+func (a Animation) Reversed() Animation
+func (a Animation) Repeat(n int) Animation
+
+func UseAnimation(s *Scope, anim Animation) *AnimationHandle
+
+func (h *AnimationHandle) Start(tick func(float32))
+func (h *AnimationHandle) Stop()
+func (h *AnimationHandle) Running() bool
+```
+
+## Animations are descriptors
+
+`Animate(duration)` returns a value type. Chain `WithCurve`, `Reversed`,
+and `Repeat` to configure it. The default curve is `EaseInOut`.
+
+```go
+anim := gova.Animate(400 * time.Millisecond).
+    WithCurve(gova.EaseOut).
+    Repeat(gova.AnimateForever)
+```
+
+## Easing curves
+
+```go
+const (
+    EaseLinear EaseCurve = iota
+    EaseInOut
+    EaseIn
+    EaseOut
+)
+```
+
+## Running an animation
+
+`UseAnimation` returns a persistent handle for the component. Call
+`Start(tick)` to run the animation; `tick` is invoked repeatedly at roughly
+60 frames per second with the current progress value from 0 to 1.
+
+```go
+func (v Spinner) Body(s *gova.Scope) gova.View {
+    progress := gova.State(s, float32(0))
+    handle := gova.UseAnimation(s, gova.Animate(time.Second).
+        WithCurve(gova.EaseLinear).
+        Repeat(gova.AnimateForever))
+
+    gova.UseEffect(s, func(ctx context.Context) func() {
+        handle.Start(func(p float32) { progress.Set(p) })
+        return handle.Stop
+    })
+
+    return gova.Text(fmt.Sprintf("%.0f%%", progress.Get()*100))
+}
+```
+
+`AnimateForever` equals `-1`; pass it to `Repeat` for a loop that only
+stops when `Stop()` is called (or the component unmounts, at which point
+the effect cleanup runs).
+
+`AutoReverse` (produced by `.Reversed()`) plays the animation forward then
+backward before counting as one cycle for `Repeat`.

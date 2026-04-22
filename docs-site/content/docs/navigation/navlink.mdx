@@ -1,0 +1,32 @@
+---
+title: NavLink
+description: A tappable label that pushes a view onto the enclosing NavStack.
+---
+
+```go
+func NavLink(label string, dest any) View
+```
+
+`NavLink` renders as an accent-colored, tappable text label. Tapping it
+pushes `dest` onto the stack.
+
+`dest` can be:
+
+- A `View`.
+- A `Viewable` struct value (constructed eagerly, but `Body` runs only when
+  the link is tapped).
+- A `func() View` for fully lazy construction when the view itself is
+  expensive to build.
+- A `func() any` when the lazy constructor returns a Viewable.
+
+```go
+gova.NavLink("Go to details", DetailView{ID: 42})
+
+gova.NavLink("Open editor", func() gova.View {
+    return EditorView{Payload: heavyPayload()}
+})
+```
+
+Behind the scenes, `NavLink` is a `Define` component that resolves `UseNav`
+at render time and wires the tap handler. It also sets the `RoleLink`
+accessibility role and copies the label to the accessibility label.

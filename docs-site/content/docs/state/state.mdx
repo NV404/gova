@@ -1,0 +1,105 @@
+---
+title: State
+description: Reactive values keyed by call site.
+---
+
+State is the primary way components hold data that drives the UI. A
+`StateValue[T]` is a typed container; mutations schedule a re-render of the
+owning component.
+
+## Creating state
+
+```go
+func State[T any](s *Scope, initial T) *StateValue[T]
+func StateKey[T any](s *Scope, key string, initial T) *StateValue[T]
+```
+
+`State` uses `runtime.Caller` to key the value on file and line. This means
+each call site is its own state cell, and subsequent renders return the same
+cell as long as you do not move the call between two different source
+locations.
+
+Use `StateKey` when the call site is not stable, for example inside a loop
+where each iteration should allocate a distinct state cell.
+
+```go
+count := gova.State(s, 0)
+name := gova.State(s, "world")
+```
+
+## Reading and writing
+
+```go
+func (s *StateValue[T]) Get() T
+func (s *StateValue[T]) Set(v T)
+func (s *StateValue[T]) SetSilent(v T)
+func (s *StateValue[T]) Update(fn func(T) T)
+func (s *StateValue[T]) Format(format string) Signal[string]
+func (s *StateValue[T]) Len() int
+```
+
+- `Get` is concurrency-safe and returns the current value.
+- `Set` replaces the value and schedules a re-render.
+- `SetSilent` replaces the value without scheduling a re-render. Widgets use
+  this internally when their own UI already reflects the new value (keystroke
+  sync in `TextField`, for example). You rarely need it in application code.
+- `Update` is a read-modify-write under the state's lock. Use it whenever the
+  next value depends on the current one.
+- `Format` returns a reactive `Signal[string]` produced by `fmt.Sprintf`
+  applied to the current value; pass it to `Text` for live formatting.
+- `Len` returns the length of a slice-, map-, string-, array- or
+  chan-typed state. Panics on other kinds.
+
+```go
+count := gova.State(s, 0)
+
+gova.Button("+1", func() {
+    count.Update(func(n int) int { return n + 1 })
+})
+
+gova.Text(count.Format("count: %d"))
+```
+
+## Slice-typed state
+
+When `T` is a slice the StateValue grows convenience methods backed by
+reflection. The same operations also exist as free functions (generic and
+compile-time checked).
+
+| Operation | Method (any) | Free function (typed) |
+| --- | --- | --- |
+| Append | `s.Append(items...)` | `gova.Append(s, items...)` |
+| Prepend | `s.Prepend(item)` | `gova.Prepend(s, item)` |
+| Remove | `s.RemoveWhere(pred)` | `gova.RemoveWhere(s, pred)` |
+| Update | `s.UpdateWhere(pred, mut)` | `gova.UpdateWhere(s, pred, mut)` |
+
+The methods use `any` as the element type and panic on non-slice state. The
+free functions are type-safe; pick whichever reads better at the call site.
+
+```go
+todos := gova.State(s, []Todo{})
+
+// Methods (reflection-backed)
+todos.Append(Todo{ID: 1, Text: "read docs"})
+todos.RemoveWhere(func(item any) bool { return item.(Todo).ID == 1 })
+
+// Free functions (generic)
+gova.Append(todos, Todo{ID: 2, Text: "write tests"})
+gova.UpdateWhere(todos,
+    func(t Todo) bool { return t.ID == 2 },
+    func(t Todo) Todo { t.Done = true; return t },
+)
+```
+
+## Cross-goroutine safety
+
+`StateValue[T]` is safe to read and write from any goroutine. Internally all
+mutations take an `sync.RWMutex` and the re-render is scheduled through
+Fyne's UI loop.
+
+## When state is reused
+
+As long as the same `State(s, initial)` call is reached on each render, the
+same cell is returned and `initial` is ignored after the first call. Moving
+the call to a different source line produces a new cell; use `StateKey` if
+you need a stable identity that is not tied to the call site.

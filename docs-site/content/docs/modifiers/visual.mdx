@@ -1,0 +1,59 @@
+---
+title: Corner radius, shadow, and stroke
+description: Visual polish modifiers.
+---
+
+```go
+func (n *viewNode) CornerRadius(r float32) *viewNode
+func (n *viewNode) Shadow(c any, radius, offsetX, offsetY float32) *viewNode
+func (n *viewNode) Stroke(c any, width float32) *viewNode
+func (n *viewNode) Opacity(o float64) *viewNode
+func (n *viewNode) Disabled(d bool) *viewNode
+```
+
+## CornerRadius
+
+Rounds the view's visual box. Affects both `Background` rectangles and
+`Stroke` outlines.
+
+```go
+gova.VStack(content).
+    Background(gova.Surface).
+    CornerRadius(12).
+    Padding(gova.SpaceMD)
+```
+
+## Shadow
+
+Casts a drop shadow.
+
+```go
+gova.VStack(content).
+    Background(gova.Surface).
+    CornerRadius(8).
+    Shadow(gova.Hex("#00000040"), 8, 0, 2)
+```
+
+Parameters are color, blur radius, x offset, and y offset.
+
+## Stroke
+
+Draws a colored border. Named `Stroke` to avoid confusion with the old
+`Border` layout that no longer exists; use `Scaffold` for layout.
+
+```go
+gova.Text("Draft").
+    Padding(gova.SpaceSM).
+    Stroke(gova.BorderColor, 1).
+    CornerRadius(4)
+```
+
+## Opacity and Disabled
+
+```go
+gova.Button("Save", onSave).Disabled(!form.Valid())
+gova.Image("hero.png").Opacity(0.5)
+```
+
+`Opacity` accepts a value between 0 and 1. `Disabled(true)` grays out the
+view and ignores taps.

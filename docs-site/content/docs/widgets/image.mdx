@@ -1,0 +1,39 @@
+---
+title: Image and AsyncImage
+description: Local and remote images with fill-mode control.
+---
+
+```go
+func Image(filePath string) *viewNode
+func AsyncImage(url string) *viewNode
+func (n *viewNode) Fill(mode FillMode) *viewNode
+```
+
+`Image` loads a file from disk at the given path. `AsyncImage` parses a URL
+and loads asynchronously through Fyne's storage layer.
+
+```go
+gova.Image("assets/logo.png")
+gova.AsyncImage("https://example.com/avatar.jpg")
+```
+
+## Fill modes
+
+```go
+const (
+    FillContain FillMode = iota
+    FillCover
+    FillOriginal
+    FillStretch
+)
+```
+
+Use `Fill` to change how the image sizes inside its bounds:
+
+```go
+gova.Image("poster.jpg").Fill(gova.FillCover).Frame(200, 300)
+```
+
+The default is `FillContain`. Both constructors also set a minimum size of
+100 by 100 so the image does not collapse in a flexible layout; combine
+with `Frame` to control it.

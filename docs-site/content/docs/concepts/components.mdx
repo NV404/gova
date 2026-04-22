@@ -1,0 +1,48 @@
+---
+title: Components with Define
+description: Closure-based components, suitable for the root view and small prop-less helpers.
+---
+
+`Define` wraps a render closure into a component. The closure is called every
+time Gova needs to (re)render the component; between renders it preserves
+state, effects, and provided stores.
+
+```go
+func Define(fn func(*Scope) View) View
+```
+
+Use `Define` for the top-level `App` and for tiny one-off views. If the
+component needs parameters, prefer a [Viewable struct](/docs/concepts/viewables)
+so callers pass typed field values rather than closure captures.
+
+## Example
+
+```go
+var Counter = gova.Define(func(s *gova.Scope) gova.View {
+	count := gova.State(s, 0)
+
+	return gova.VStack(
+		gova.Text(count.Format("count: %d")).Font(gova.Title),
+		gova.Button("+1", func() {
+			count.Update(func(n int) int { return n + 1 })
+		}),
+	).Spacing(gova.SpaceSM)
+})
+```
+
+The closure captures nothing external. All mutable values (here `count`) live
+on the `*Scope`, which survives across renders. If you declare a local
+variable in the closure without routing it through `State`, `Ref`, or a
+store, it is recreated on every render and does not participate in
+reactivity.
+
+## Re-rendering
+
+A component rerenders when any `StateValue` or store it reads is mutated via
+`Set` or `Update`. The render is scheduled on the UI goroutine through Fyne's
+`fyne.Do`, so state can be mutated from any goroutine safely.
+
+## Limitations
+
+A `Define`-based component has no way to accept parameters. Any reusable
+component that takes arguments should be a `Viewable` struct.

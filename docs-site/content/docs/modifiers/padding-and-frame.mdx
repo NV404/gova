@@ -1,0 +1,51 @@
+---
+title: Padding and frame
+description: Spacing around a view, and size constraints.
+---
+
+## Padding
+
+```go
+func (n *viewNode) Padding(all float32) *viewNode
+func (n *viewNode) PaddingEdges(top, right, bottom, left float32) *viewNode
+func (n *viewNode) PaddingH(v float32) *viewNode
+func (n *viewNode) PaddingV(v float32) *viewNode
+func (n *viewNode) PaddingTop(v float32) *viewNode
+func (n *viewNode) PaddingBottom(v float32) *viewNode
+func (n *viewNode) PaddingLeading(v float32) *viewNode
+func (n *viewNode) PaddingTrailing(v float32) *viewNode
+```
+
+`Padding(all)` applies the same inset to all four edges. The named helpers
+set individual axes or edges; calling more than one merges them, so you can
+compose `PaddingH(16).PaddingTop(8)`.
+
+```go
+gova.VStack(
+    gova.Text("Welcome"),
+    gova.Text("Sign in to continue"),
+).PaddingH(gova.SpaceLG).PaddingV(gova.SpaceMD)
+```
+
+## Frame
+
+```go
+func (n *viewNode) Frame(width, height float32) *viewNode
+func (n *viewNode) MinWidth(w float32) *viewNode
+func (n *viewNode) MinHeight(h float32) *viewNode
+func (n *viewNode) Grow() *viewNode
+```
+
+`Frame(width, height)` sets a preferred minimum size; pass 0 to leave an
+axis unconstrained. `MinWidth` and `MinHeight` set just one axis.
+
+`Grow()` flags a child to fill available space inside an `HStack` or
+`VStack`. See [VStack and HStack](/docs/layout/stacks#growing-a-child) for
+details. Only the first grow child in a stack participates.
+
+```go
+gova.HStack(
+    gova.TextField(input).Placeholder("...").MinHeight(36).Grow(),
+    gova.Button("Send", onSend),
+)
+```

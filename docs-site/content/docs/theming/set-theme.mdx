@@ -1,0 +1,37 @@
+---
+title: Switching themes at runtime
+description: Change the active theme from an event handler.
+---
+
+```go
+func UseSetTheme(s *Scope) func(*Theme)
+```
+
+`UseSetTheme` returns a function that replaces the currently active theme.
+Call it from any event handler; the change is applied on the UI goroutine
+and every semantic color resolves against the new palette on the next
+render.
+
+```go
+func (v Settings) Body(s *gova.Scope) gova.View {
+    setTheme := gova.UseSetTheme(s)
+
+    return gova.VStack(
+        gova.Button("Light", func() { setTheme(gova.LightTheme()) }),
+        gova.Button("Dark", func() { setTheme(gova.DarkTheme()) }),
+        gova.Button("System", func() { setTheme(gova.SystemTheme()) }),
+    ).Spacing(gova.SpaceSM)
+}
+```
+
+## Initial theme
+
+To set the theme at startup pass it through `AppConfig.Theme`. `Run` uses
+the Fyne default theme if you leave it nil.
+
+```go
+gova.RunWithConfig(gova.AppConfig{
+    Title: "My App",
+    Theme: gova.DarkTheme(),
+}, App)
+```

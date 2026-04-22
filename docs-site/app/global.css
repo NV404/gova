@@ -1,0 +1,333 @@
+/* ---------------------------------------------------------------
+   Gova — global theme.
+   Warm-dark palette: #121212 ink, #F7F4E5 cream, amber accent.
+--------------------------------------------------------------- */
+
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@0,9..144,300..900,0..100;1,9..144,300..900,0..100&family=Geist+Mono:wght@400;500;600&family=Geist:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+/* Fumadocs token overrides — applied to both :root and .dark so the
+   palette is consistent across main site and docs, regardless of what
+   next-themes resolves. */
+:root,
+.dark,
+:root.dark {
+  --fd-background: 0 0% 7.06%;           /* #121212 */
+  --fd-foreground: 49 53% 92.55%;        /* #F7F4E5 */
+  --fd-muted: 42 5% 10%;
+  --fd-muted-foreground: 46 14% 62%;
+  --fd-popover: 40 6% 8%;
+  --fd-popover-foreground: 49 53% 92.55%;
+  --fd-card: 42 6% 9.5%;
+  --fd-card-foreground: 49 53% 92.55%;
+  --fd-border: 42 8% 14%;
+  --fd-primary: 49 53% 92.55%;
+  --fd-primary-foreground: 0 0% 7.06%;
+  --fd-secondary: 40 6% 14%;
+  --fd-secondary-foreground: 49 53% 92.55%;
+  --fd-accent: 40 6% 16%;                /* subtle elevated dark — readable on hover */
+  --fd-accent-foreground: 49 53% 92.55%; /* cream text stays on top */
+  --fd-ring: 49 53% 92.55%;
+}
+
+:root {
+  /* Brand tokens — prefer these in custom components */
+  --gova-ink: #121212;
+  --gova-ink-2: #161616;
+  --gova-surface: #1A1918;
+  --gova-surface-2: #221F1B;
+  --gova-line: #2A2722;
+  --gova-line-bright: #3B362E;
+  --gova-cream: #F7F4E5;
+  --gova-cream-dim: #B8B3A0;
+  --gova-cream-faint: #73705F;
+  /* "accent" is white/cream — no gold on the marketing site */
+  --gova-amber: #FFFFFF;
+  --gova-amber-soft: #FFFFFF;
+  --gova-amber-deep: #B8B3A0;
+  --gova-rose: #E8A3A3;
+  --gova-moss: #A8B58E;
+
+  --font-display: 'Fraunces', 'Times New Roman', serif;
+  --font-sans: 'Geist', -apple-system, BlinkMacSystemFont, 'SF Pro Text', Helvetica, Arial, sans-serif;
+  --font-mono: 'Geist Mono', 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+html {
+  color-scheme: dark;
+  background: var(--gova-ink);
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--gova-ink);
+  color: var(--gova-cream);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: 'ss01', 'ss02', 'cv11';
+  /* Safety net: prevents accidental horizontal overflow on mobile
+     without introducing a scroll gutter on desktop. */
+  overflow-x: clip;
+}
+
+/* Selection — cream on ink */
+::selection {
+  background: var(--gova-cream);
+  color: var(--gova-ink);
+}
+
+/* Scrollbar — cream on warm dark */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: var(--gova-ink); }
+::-webkit-scrollbar-thumb {
+  background: var(--gova-line);
+  border-radius: 999px;
+  border: 2px solid var(--gova-ink);
+}
+::-webkit-scrollbar-thumb:hover { background: var(--gova-line-bright); }
+
+/* Subtle film grain over the entire page */
+.gova-grain::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.035;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+
+/* Nav — blend with warm dark */
+#nd-nav,
+[data-nd-nav] {
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+}
+
+/* Docs prose — serif emphasis on headings, cream body */
+.prose h1,
+.prose h2,
+.prose h3,
+#nd-docs-layout article h1,
+#nd-docs-layout article h2 {
+  font-family: var(--font-display);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+
+/* Links inside prose — cream with a subtle underline */
+.prose a,
+#nd-docs-layout article a {
+  color: var(--gova-cream);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  text-decoration-color: rgba(247, 244, 229, 0.4);
+}
+.prose a:hover { text-decoration-color: var(--gova-cream); }
+
+/* ---- Keyframes used on home ---- */
+@keyframes gova-rise {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes gova-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes gova-blink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+@keyframes gova-pulse-ring {
+  0%   { box-shadow: 0 0 0 0 color-mix(in oklch, var(--gova-amber) 40%, transparent); }
+  100% { box-shadow: 0 0 0 14px transparent; }
+}
+
+.gova-rise { animation: gova-rise 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.gova-fade { animation: gova-fade 1.2s ease both; }
+
+/* Scroll-triggered reveal — progressive enhancement via view timeline */
+@supports (animation-timeline: view()) {
+  .gova-reveal {
+    animation: gova-rise 1s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    animation-timeline: view();
+    animation-range: entry 0% cover 22%;
+  }
+}
+
+/* Decorative dotted grid — used in hero */
+.gova-grid {
+  background-image:
+    radial-gradient(circle at 1px 1px, rgba(247, 244, 229, 0.09) 1px, transparent 0);
+  background-size: 28px 28px;
+}
+.gova-grid-fade {
+  mask-image: radial-gradient(ellipse 80% 60% at 50% 30%, black 40%, transparent 85%);
+  -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 30%, black 40%, transparent 85%);
+}
+
+/* Buttons */
+.gova-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.7rem 1.15rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  font-family: var(--font-sans);
+  letter-spacing: -0.005em;
+  border-radius: 8px;
+  text-decoration: none;
+  transition: transform 160ms ease, background 160ms ease, color 160ms ease, border-color 160ms ease;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+.gova-btn--primary {
+  background: var(--gova-cream);
+  color: var(--gova-ink);
+  border-color: var(--gova-cream);
+}
+.gova-btn--primary:hover {
+  background: var(--gova-amber-soft);
+  border-color: var(--gova-amber-soft);
+  transform: translateY(-1px);
+}
+.gova-btn--ghost {
+  background: transparent;
+  color: var(--gova-cream);
+  border-color: var(--gova-line-bright);
+}
+.gova-btn--ghost:hover {
+  background: var(--gova-surface);
+  border-color: var(--gova-cream-faint);
+  transform: translateY(-1px);
+}
+
+.gova-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.32rem 0.7rem 0.32rem 0.55rem;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.03em;
+  color: var(--gova-cream-dim);
+  background: var(--gova-surface);
+  border: 1px solid var(--gova-line);
+  border-radius: 999px;
+}
+.gova-chip-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--gova-amber);
+  box-shadow: 0 0 0 0 color-mix(in oklch, var(--gova-amber) 40%, transparent);
+  animation: gova-pulse-ring 1.8s ease-out infinite;
+}
+
+/* Card hover */
+.gova-card {
+  position: relative;
+  background: linear-gradient(180deg, var(--gova-surface) 0%, var(--gova-ink-2) 100%);
+  border: 1px solid var(--gova-line);
+  border-radius: 14px;
+  transition: border-color 200ms ease, transform 200ms ease, box-shadow 200ms ease;
+}
+.gova-card:hover {
+  border-color: rgba(247, 244, 229, 0.28);
+  transform: translateY(-2px);
+  box-shadow: 0 18px 50px -20px rgba(247, 244, 229, 0.12);
+}
+
+/* Code window */
+.gova-code {
+  background: #0E0E0D;
+  color: var(--gova-cream);
+  border: 1px solid var(--gova-line);
+  border-radius: 12px;
+  overflow: hidden;
+  font-family: var(--font-mono);
+  /* Let the code block shrink below its content width inside flex/grid
+     parents so long lines scroll inside the <pre> instead of pushing
+     the hero layout wider than the viewport. */
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* Hero right column wrapper — grid item that holds the code window. */
+.gova-hero-code-col {
+  min-width: 0;
+  max-width: 100%;
+}
+.gova-code pre,
+.gova-code code {
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  line-height: 1.7;
+}
+
+/* Syntax hues — neutral cream palette, muted accents */
+.tok-kw  { color: #E8A3A3; }             /* keyword rose */
+.tok-str { color: #D6CFB8; }             /* muted warm cream */
+.tok-fn  { color: #C3D8A8; }
+.tok-ty  { color: #F7F4E5; }
+.tok-cm  { color: #6E6B5E; font-style: italic; }
+.tok-pk  { color: #B8B3A0; }
+.tok-nm  { color: #EFEADA; }
+
+/* Feature-grid hover — subtle elevation */
+.gova-feature-cell:hover {
+  background: var(--gova-ink-2);
+}
+
+/* Responsive tweaks */
+@media (max-width: 960px) {
+  .gova-hero-grid { grid-template-columns: 1fr !important; }
+  .gova-value-grid { grid-template-columns: 1fr !important; }
+  .gova-features-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  .gova-metrics-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 1.5rem !important; }
+  .gova-quickstart-row { grid-template-columns: 1fr !important; gap: 1.1rem !important; }
+}
+@media (max-width: 720px) {
+  /* Platform-support table: stack into one card per feature with
+     labeled rows instead of the 4-column grid. */
+  .gova-platform-header { display: none !important; }
+  .gova-platform-row {
+    grid-template-columns: 1fr !important;
+    gap: 0.65rem !important;
+    padding: 1.15rem 1.15rem !important;
+  }
+  .gova-platform-row .gova-platform-cell {
+    display: flex !important;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .gova-platform-row .gova-platform-cell::before {
+    content: attr(data-label);
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--gova-cream-faint);
+    min-width: 64px;
+    flex-shrink: 0;
+  }
+}
+@media (max-width: 600px) {
+  .gova-features-grid { grid-template-columns: 1fr !important; }
+  .gova-metrics-grid { grid-template-columns: 1fr !important; }
+}
+
+/* Fumadocs nav title size tweak */
+#nd-nav a[aria-label],
+nav a[aria-label] { height: auto; }
+
+/* Reduce motion respect */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}

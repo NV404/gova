@@ -1,0 +1,49 @@
+---
+title: Button
+description: Tappable button with a label and a handler.
+---
+
+```go
+func Button(label string, handler func()) *viewNode
+func (n *viewNode) Style(s ButtonStyle) *viewNode
+```
+
+```go
+gova.Button("Save", func() {
+    save()
+})
+```
+
+The handler is called on the UI goroutine. If the handler does expensive
+work, move it to a goroutine yourself.
+
+## Styles
+
+`ButtonStyle` is accepted by `Style`:
+
+- `ButtonDefault` (zero value)
+- `ButtonPrimary`
+- `ButtonDestructive`
+
+```go
+gova.Button("Delete", onDelete).Style(gova.ButtonDestructive)
+```
+
+## Do not apply OnTap to a Button
+
+`OnTap` is for non-interactive views. Applying it to a `Button` panics with
+a clear message; pass the handler to `Button` itself.
+
+## Color
+
+The `Color` modifier applies to the label text:
+
+```go
+gova.Button("Delete", onDelete).Color(gova.Red)
+```
+
+Use [semantic colors](/docs/theming) for theme-aware styling:
+
+```go
+gova.Button("Delete", onDelete).Color(gova.Destructive)
+```

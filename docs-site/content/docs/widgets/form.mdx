@@ -1,0 +1,29 @@
+---
+title: Form
+description: Labeled key-value input layout.
+---
+
+```go
+func Form(items ...FormEntry) *viewNode
+
+type FormEntry struct {
+    Label string
+    View  View
+}
+```
+
+`Form` renders a two-column layout of labels and their corresponding views.
+Construct each entry with a `FormEntry` literal.
+
+```go
+name := gova.State(s, "")
+email := gova.State(s, "")
+
+gova.Form(
+    gova.FormEntry{Label: "Name", View: gova.TextField(name)},
+    gova.FormEntry{Label: "Email", View: gova.TextField(email)},
+)
+```
+
+Any `View` works as the value side, not only text fields. Use a `VStack` or
+custom `Viewable` if an entry needs more than a single input.

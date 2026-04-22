@@ -1,0 +1,141 @@
+---
+title: Native dialogs
+description: Alerts, confirmations, and file pickers that look like the rest of the OS.
+---
+
+Gova offers fluent builders for the common system dialogs. Each builder
+collects configuration, and `Present(s)` shows the dialog using the active
+window as the parent.
+
+```go
+func NativeAlert(title, message string) *NativeAlertBuilder
+func NativeConfirm(title, message string) *NativeConfirmBuilder
+func FilePicker() *FilePickerBuilder
+func SavePicker() *SavePickerBuilder
+func FolderPicker() *FolderPickerBuilder
+```
+
+All builders are chain-style. Unset callbacks are treated as no-ops, so
+you never have to provide handlers you do not care about.
+
+## NativeAlert
+
+A single-button informational dialog.
+
+```go
+gova.NativeAlert("Saved", "Your draft has been saved.").
+    OK("Got it").
+    OnClose(func() { /* optional */ }).
+    Present(s)
+```
+
+| Method | Purpose |
+|---|---|
+| `OK(label)` | Override the dismiss button label (default: `OK`) |
+| `OnClose(fn)` | Run `fn` after the user dismisses |
+
+## NativeConfirm
+
+A two-button dialog for destructive or consequential actions.
+
+```go
+gova.NativeConfirm("Delete note?", "This cannot be undone.").
+    Destructive().
+    Confirm("Delete").
+    Cancel("Keep").
+    OnConfirm(deleteNote).
+    OnCancel(func() { /* optional */ }).
+    Present(s)
+```
+
+| Method | Purpose |
+|---|---|
+| `Confirm(label)` | Override the confirm button label (default: `Confirm`) |
+| `Cancel(label)` | Override the cancel button label (default: `Cancel`) |
+| `Destructive()` | Style the confirm button as a warning |
+| `OnConfirm(fn)` | Run `fn` when the user confirms |
+| `OnCancel(fn)` | Run `fn` when the user cancels |
+
+## FilePicker
+
+Let the user choose an existing file to read.
+
+```go
+gova.FilePicker().
+    Types(".png", ".jpg", ".jpeg").
+    StartDir(homeDir).
+    OnPick(func(path string) {
+        // open the file
+    }).
+    OnCancel(func() {}).
+    OnError(func(err error) { log.Println(err) }).
+    Present(s)
+```
+
+`Types` accepts extensions with or without the leading dot and is
+case-insensitive. Pass no types to show every file.
+
+The callback receives an absolute filesystem path. The dialog closes the
+underlying handle before invoking the callback, so you are responsible
+for reopening the file yourself.
+
+## SavePicker
+
+Let the user pick a destination for a new file.
+
+```go
+gova.SavePicker().
+    Default("untitled.md").
+    Types(".md", ".txt").
+    StartDir(projectDir).
+    OnSave(func(path string) {
+        os.WriteFile(path, []byte(content), 0o644)
+    }).
+    Present(s)
+```
+
+The dialog enforces its own "overwrite existing?" prompt on the
+platforms where that is idiomatic.
+
+## FolderPicker
+
+Let the user choose a directory.
+
+```go
+gova.FolderPicker().
+    StartDir("/Users").
+    OnPick(func(path string) {
+        loadWorkspace(path)
+    }).
+    Present(s)
+```
+
+## Where dialogs get their parent window
+
+`Present(s)` resolves the presenter that `gova.RunWithConfig` publishes
+on the root scope. Tests that call `Present` on a detached scope (one
+that has not been initialized by the runtime) see a silent no-op,
+which keeps unit tests from opening real dialogs.
+
+## Platform notes
+
+On **macOS** the dialogs are truly native. `NativeAlert` and
+`NativeConfirm` are built on `NSAlert`; `FilePicker`, `SavePicker`, and
+`FolderPicker` are built on `NSOpenPanel` / `NSSavePanel`. They attach
+as a sheet to the key window when one exists, and fall back to a
+free-standing modal otherwise. Destructive confirms use
+`NSAlertStyleCritical` and set `hasDestructiveAction` on the confirm
+button so macOS renders it in the platform's warning style.
+
+On **Windows** and **Linux** the dialogs currently fall back to
+Fyne-drawn popups inside the app window. Native bridges (`TaskDialog`
+and `IFileDialog` on Windows, portal-based pickers on Linux) are
+planned; the public API will not change when they land.
+
+| Dialog | macOS | Windows | Linux |
+|---|---|---|---|
+| `NativeAlert` | Native (`NSAlert`) | Fyne fallback | Fyne fallback |
+| `NativeConfirm` | Native (`NSAlert`) | Fyne fallback | Fyne fallback |
+| `FilePicker` | Native (`NSOpenPanel`) | Fyne fallback | Fyne fallback |
+| `SavePicker` | Native (`NSSavePanel`) | Fyne fallback | Fyne fallback |
+| `FolderPicker` | Native (`NSOpenPanel`) | Fyne fallback | Fyne fallback |

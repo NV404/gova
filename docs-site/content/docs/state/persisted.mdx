@@ -1,0 +1,62 @@
+---
+title: PersistedState
+description: State that round-trips through a JSON file so it survives gova dev reloads.
+---
+
+```go
+func PersistedState[T any](s *Scope, key string, initial T, opts ...PersistOption) *StateValue[T]
+func PersistDir(dir string) PersistOption
+```
+
+`PersistedState` behaves exactly like `State`, but the value is written to
+disk whenever it changes. On the next render (which, in development, usually
+means after a `gova dev` reload), the value is seeded back from the file.
+
+Use it for small UI state that would be annoying to lose on every code
+change: the selected tab, the text in a draft field, the current filter.
+
+```go
+type NoteEditor struct{}
+
+func (NoteEditor) Body(s *gova.Scope) gova.View {
+    draft := gova.PersistedState(s, "note-draft", "")
+    return gova.VStack(
+        gova.TextField(draft).Placeholder("Start typing"),
+    )
+}
+```
+
+After the user types into the field and saves a source file, the dev
+server restarts the app and the draft is restored.
+
+## Storage location
+
+`PersistedState` resolves the storage directory in this order:
+
+1. `PersistDir("...")` option passed at the call site.
+2. The `GOVA_DEV_STATE` environment variable, which `gova dev` sets.
+3. `$XDG_STATE_HOME/gova` if set.
+4. `~/.cache/gova` as the final fallback.
+
+Each key maps to a JSON file named `<sanitized-key>.json` in that
+directory. Characters that are unsafe for a filename are replaced with
+underscores.
+
+## Guarantees and limits
+
+- Values are serialized with `encoding/json`. The type must be JSON
+  encodable.
+- Writes are best effort. If the filesystem is read-only or the disk is
+  full, the call silently drops.
+- Writes happen on every state change. Avoid `PersistedState` for
+  high-frequency updates, like a value bound to a mouse-move handler.
+- `PersistedState` is not intended for user data. For anything that
+  should survive an app uninstall or sync across machines, write your
+  own storage layer.
+
+## Opting out in production
+
+`PersistedState` is active in every build, not just dev. If your app
+has data you do not want cached between launches, use plain `State`
+instead. There is no automatic cleanup; delete the state directory to
+reset values during testing.

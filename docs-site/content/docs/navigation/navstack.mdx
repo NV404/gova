@@ -1,0 +1,25 @@
+---
+title: NavStack
+description: A navigation container rooted at a given view.
+---
+
+```go
+func NavStack(root any) *viewNode
+```
+
+`NavStack` creates a navigation container. Its argument is the root view, a
+`View` or `Viewable`. Passing `nil` panics.
+
+```go
+var App = gova.Define(func(s *gova.Scope) gova.View {
+    return gova.NavStack(HomeView{})
+})
+```
+
+The stack owns its own state and is not accessible from outside the
+enclosing `NavStack` subtree; to push or pop from a descendant, use
+[`UseNav`](/docs/navigation/usenav).
+
+A `NavStack` automatically shows a title bar above the current view. Views
+contribute title and toolbar content via `.NavTitle` and `.NavToolbar` (see
+[Title and toolbar](/docs/navigation/title-and-toolbar)).

@@ -1,0 +1,68 @@
+---
+title: Stores
+description: Dependency-injected state that descendants can read and write.
+---
+
+A store is a `*StateValue[T]` made available to every descendant component
+in a subtree. It replaces prop drilling for values that many views need to
+observe.
+
+## Defining a key
+
+Define a `*StoreKey[T]` at package level. The pointer itself is the identity;
+two keys with the same `Default` but different allocations are different
+stores.
+
+```go
+type NotesModel struct {
+	Notes  []Note
+	NextID int
+}
+
+var NotesStore = &gova.StoreKey[NotesModel]{Default: NotesModel{NextID: 1}}
+```
+
+## Providing
+
+`Provide` attaches an initial value for the key onto the given scope. Only
+descendant components (and the providing scope itself) can see it.
+
+```go
+func Provide[T any](s *Scope, key *StoreKey[T], initial T)
+```
+
+The typical place to call `Provide` is the root component:
+
+```go
+var App = gova.Define(func(s *gova.Scope) gova.View {
+	gova.Provide(s, NotesStore, NotesModel{NextID: 1})
+	return NotesView{}
+})
+```
+
+If the same key is provided again by a descendant, the descendant shadows
+the ancestor within its subtree.
+
+## Reading
+
+`UseStore` walks the scope tree for the nearest provider of the key and
+returns its `*StateValue[T]`. If no ancestor provided the store, a fresh
+state value is allocated at the current scope using the key's `Default`.
+
+```go
+func UseStore[T any](s *Scope, key *StoreKey[T]) *StateValue[T]
+
+func (v NotesView) Body(s *gova.Scope) gova.View {
+	model := gova.UseStore(s, NotesStore)
+
+	return gova.VStack(
+		gova.Text(gova.Derived(model, func(m NotesModel) string {
+			return fmt.Sprintf("%d notes", len(m.Notes))
+		})),
+	)
+}
+```
+
+Because the returned value is the same `*StateValue` that the provider
+stored, any `Set` or `Update` on it triggers a re-render in all subscribed
+components, not just the one that called `UseStore`.

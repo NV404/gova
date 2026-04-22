@@ -1,0 +1,29 @@
+---
+title: Sheets
+description: Non-modal overlay surfaces.
+---
+
+```go
+func UseSheet(s *Scope) (show func(content View), dismiss func())
+```
+
+`UseSheet` returns a pair of functions: `show` opens an overlay with the
+given content, `dismiss` closes it.
+
+```go
+func (v Settings) Body(s *gova.Scope) gova.View {
+    showSheet, dismissSheet := gova.UseSheet(s)
+
+    return gova.VStack(
+        gova.Button("About", func() {
+            showSheet(gova.VStack(
+                gova.Text("My App v1.0").Font(gova.Title).Bold(),
+                gova.Button("Close", func() { dismissSheet() }),
+            ).Padding(gova.SpaceLG))
+        }),
+    )
+}
+```
+
+Sheets are painted above the main content. Only one sheet is active at a
+time; calling `show` again replaces the current sheet.

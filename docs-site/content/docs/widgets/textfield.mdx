@@ -1,0 +1,55 @@
+---
+title: TextField
+description: Reactive text input bound to a *StateValue[string].
+---
+
+```go
+func TextField(state *StateValue[string]) *viewNode
+
+func (n *viewNode) Placeholder(p string) *viewNode
+func (n *viewNode) OnSubmit(fn func(string)) *viewNode
+func (n *viewNode) Multiline() *viewNode
+func (n *viewNode) Password() *viewNode
+```
+
+A `TextField` is bound to a `*StateValue[string]`. Typing updates the state
+silently (no re-render, because the entry widget already shows the latest
+text). Calling `state.Set("")` from outside the field clears it.
+
+## Example
+
+```go
+input := gova.State(s, "")
+
+gova.TextField(input).
+    Placeholder("Search...").
+    OnSubmit(func(val string) {
+        performSearch(val)
+        input.Set("")
+    })
+```
+
+## Modifiers
+
+`Multiline()` switches to a multi-line entry with wrapping. `Password()`
+masks input. Both are plain chained methods; do not pass them as arguments.
+
+```go
+gova.TextField(password).Password()
+gova.TextField(notes).Multiline().MinHeight(120)
+```
+
+## Sizing inside a stack
+
+A bare `TextField` uses Fyne's default height, which is smaller than most
+UI designs expect. Set an explicit minimum:
+
+```go
+gova.HStack(
+    gova.TextField(input).Placeholder("...").MinHeight(36).Grow(),
+    gova.Button("Add", onAdd),
+).Spacing(gova.SpaceSM)
+```
+
+The `.Grow()` modifier lets the field fill the remaining horizontal space
+alongside the button.

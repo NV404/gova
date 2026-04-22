@@ -1,0 +1,26 @@
+---
+title: Progress
+description: Indeterminate and determinate progress indicators.
+---
+
+```go
+func ProgressView() *viewNode
+func ProgressBar(value float64) *viewNode
+```
+
+`ProgressView` renders an indeterminate spinner or bar (handled by the
+underlying Fyne widget). Use it while a background task is running.
+
+```go
+if loading {
+    return gova.ProgressView()
+}
+```
+
+`ProgressBar` renders a filled bar from `0.0` to `1.0`.
+
+```go
+gova.ProgressBar(downloaded / total)
+```
+
+A negative value is treated as indeterminate.

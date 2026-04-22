@@ -1,0 +1,30 @@
+---
+title: gova build
+description: Compile a Gova binary to ./bin.
+---
+
+`gova build` is a convenience wrapper over `go build` that places the
+output in a predictable location and applies the platform-appropriate
+extension.
+
+```bash
+gova build              # produces ./bin/<module-name>
+gova build ./cmd/app    # produces ./bin/app
+gova build -o dist/app  # custom output path
+```
+
+## Flags
+
+| Flag | Default | Meaning |
+|---|---|---|
+| `-o` | `./bin/<basename>` | Output path |
+
+## Notes
+
+- Output directories are created on demand.
+- On Windows, the output is suffixed with `.exe` automatically.
+- Build errors stream to stderr exactly as `go build` emits them, so
+  editor integrations that parse compiler output continue to work.
+
+For anything more complex than "put a binary in bin/," call `go build`
+directly. `gova build` is deliberately thin.

@@ -1,0 +1,76 @@
+---
+title: Effects and async
+description: Side effects bound to a component lifetime, and a typed helper for async loads.
+---
+
+Gova offers two hooks for side effects: `UseEffect` for arbitrary imperative
+work with cleanup, and `UseAsync` for one-shot loads whose result is bound to
+the view.
+
+## UseEffect
+
+```go
+func UseEffect(s *Scope, fn func(ctx context.Context) func())
+```
+
+The callback runs once per mount. The `context.Context` is cancelled when the
+component unmounts. If the callback returns a non-nil function, that function
+runs on unmount.
+
+```go
+func (v Clock) Body(s *gova.Scope) gova.View {
+	now := gova.State(s, time.Now())
+
+	gova.UseEffect(s, func(ctx context.Context) func() {
+		ticker := time.NewTicker(time.Second)
+		go func() {
+			for {
+				select {
+				case <-ctx.Done():
+					return
+				case t := <-ticker.C:
+					now.Set(t)
+				}
+			}
+		}()
+		return func() { ticker.Stop() }
+	})
+
+	return gova.Text(now.Format("time: %s"))
+}
+```
+
+`UseEffect` is call-site keyed just like `State`, so the same effect is not
+rerun on every render; it is initialized once per mount.
+
+## UseAsync
+
+```go
+func UseAsync[T any](s *Scope, fn func(ctx context.Context) (T, error)) (T, error, bool)
+```
+
+Runs the function in a goroutine and returns `(data, err, loading)`. The
+first render returns the zero `T`, `nil`, and `true`. Once the goroutine
+finishes the state is updated and the component rerenders with the final
+`(data, err, false)` tuple.
+
+The context is cancelled on unmount so the goroutine can exit cleanly.
+
+```go
+func (v UserCard) Body(s *gova.Scope) gova.View {
+	user, err, loading := gova.UseAsync(s, func(ctx context.Context) (User, error) {
+		return fetchUser(ctx, v.UserID)
+	})
+
+	if loading {
+		return gova.ProgressView()
+	}
+	if err != nil {
+		return gova.Text(err.Error()).Color(gova.Destructive)
+	}
+	return gova.Text(user.Name).Font(gova.Title)
+}
+```
+
+Like `UseEffect`, `UseAsync` is call-site keyed; the goroutine is started on
+first mount, not on every render.

@@ -1,0 +1,48 @@
+---
+title: NavTitle and NavToolbar
+description: Attach a title and toolbar buttons to the current view.
+---
+
+```go
+func (n *viewNode) NavTitle(title string) *viewNode
+func (n *viewNode) NavToolbar(items ...ToolbarItem) *viewNode
+
+type ToolbarItem struct { /* opaque */ }
+
+func ToolbarLeading(v any) ToolbarItem
+func ToolbarTrailing(v any) ToolbarItem
+```
+
+The `NavStack` reads these values from the visible view's modifier set and
+draws them in the title bar.
+
+## Title
+
+```go
+func (HomeView) Body(s *gova.Scope) gova.View {
+    return gova.VStack(
+        gova.Text("Home"),
+    ).NavTitle("Home")
+}
+```
+
+## Toolbar
+
+```go
+func (v DetailView) Body(s *gova.Scope) gova.View {
+    nav := gova.UseNav(s)
+
+    return gova.VStack(content).
+        NavTitle(fmt.Sprintf("Item %d", v.ID)).
+        NavToolbar(
+            gova.ToolbarTrailing(gova.Button("Edit", func() {
+                nav.Push(EditView{ID: v.ID})
+            })),
+        )
+}
+```
+
+`ToolbarLeading` and `ToolbarTrailing` wrap any view so they can be placed
+on the leading or trailing side of the title bar. If the stack has more
+than one view, the bar also shows a back button on the leading side; you
+do not need to add it yourself.

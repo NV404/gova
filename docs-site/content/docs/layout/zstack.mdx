@@ -1,0 +1,31 @@
+---
+title: ZStack
+description: Layer children on top of each other.
+---
+
+`ZStack` layers its children at the same position. Use it for overlays,
+badges, image captions, or anywhere you need two views painted on top of one
+another.
+
+```go
+func ZStack(children ...any) *viewNode
+```
+
+The default alignment is `AlignCenter`. Override it with `.Align(...)`:
+
+```go
+gova.ZStack(
+    gova.Image("photo.jpg"),
+    gova.Text("Caption").
+        Color(gova.White).
+        Background(gova.Hex("#000000AA")).
+        Padding(gova.SpaceSM),
+).Align(gova.BottomTrailing)
+```
+
+Every child is sized to the ZStack's bounds unless it has its own frame or
+padding. Later children render on top of earlier children.
+
+Supported alignments: `AlignTopLeading`, `AlignTop`, `AlignTopTrailing`,
+`AlignLeading`, `AlignCenter`, `AlignTrailing`, `AlignBottomLeading`,
+`AlignBottom`, `AlignBottomTrailing`.

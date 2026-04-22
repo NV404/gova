@@ -1,0 +1,25 @@
+---
+title: ErrorBoundary
+description: Recover from panics in a component's Body.
+---
+
+```go
+func ErrorBoundary(child any, fallback func(err error) View) *viewNode
+```
+
+`ErrorBoundary` wraps a component and catches any panic that happens during
+its `Body`. The fallback callback produces the replacement view.
+
+```go
+gova.ErrorBoundary(UserProfile{UserID: id}, func(err error) gova.View {
+    return gova.VStack(
+        gova.Text("Could not load profile").Bold().Color(gova.Destructive),
+        gova.Text(err.Error()).Color(gova.Secondary),
+    ).Padding(gova.SpaceLG)
+})
+```
+
+`child` may be a `View`, a `Viewable`, or a `*componentNode`. Non-component
+views are passed through without wrapping; the guard only applies to
+component renders. Panics that are not `error` values are wrapped with
+`fmt.Errorf("%v", r)` before they reach the fallback.

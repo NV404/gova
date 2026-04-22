@@ -1,0 +1,32 @@
+---
+title: ScrollView
+description: Scrollable container for content that overflows its bounds.
+---
+
+`ScrollView` wraps children in a vertical scroll container by default.
+
+```go
+func ScrollView(children ...any) *viewNode
+```
+
+Children are stacked vertically inside the scroll area. Wrap a `List`, a
+`VStack`, or any other view when content may exceed the visible height.
+
+```go
+gova.Scaffold(
+    gova.ScrollView(
+        gova.List(todos, keyFn, renderFn),
+    ),
+).Top(header)
+```
+
+## Direction
+
+The `ScrollDirection` method swaps the scrolling axis.
+
+```go
+gova.ScrollView(row1, row2, row3).ScrollDirection(gova.ScrollHorizontal)
+```
+
+Available directions: `ScrollVertical` (default), `ScrollHorizontal`, and
+`ScrollBoth`.

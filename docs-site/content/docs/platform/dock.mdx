@@ -1,0 +1,90 @@
+---
+title: Dock and taskbar
+description: Set the dock badge, bounce the icon, and attach a dock menu.
+---
+
+```go
+func UseDock(s *Scope) *Dock
+
+type Dock struct { /* opaque */ }
+
+func (d *Dock) SetBadge(text string)
+func (d *Dock) SetProgress(fraction float64)
+func (d *Dock) Bounce()
+func (d *Dock) SetMenu(items []DockMenuItem)
+
+type DockMenuItem struct {
+    Label  string
+    Action func()
+}
+```
+
+`UseDock` returns the process-wide dock handle. Dock state is global, so
+the same handle is returned regardless of which scope calls `UseDock`.
+
+## Badge
+
+```go
+func (HomeView) Body(s *gova.Scope) gova.View {
+    dock := gova.UseDock(s)
+    unread := gova.State(s, 3)
+
+    gova.UseEffect(s, func() func() {
+        dock.SetBadge(fmt.Sprintf("%d", unread.Get()))
+        return func() { dock.SetBadge("") }
+    }, unread.Get())
+
+    return gova.Text("Home")
+}
+```
+
+Pass `""` to clear the badge.
+
+## Progress
+
+```go
+dock.SetProgress(0.4)   // 40%
+dock.SetProgress(-1)    // hide
+```
+
+`SetProgress` takes a fraction in `[0, 1]`. Negative values hide the
+indicator.
+
+## Bounce
+
+`Bounce()` asks the operating system for the user's attention. On macOS
+the dock icon bounces; on Windows the taskbar entry flashes; on Linux
+the call is best effort.
+
+## Menu
+
+```go
+dock.SetMenu([]gova.DockMenuItem{
+    {Label: "New window", Action: openWindow},
+    {Label: ""}, // separator
+    {Label: "Preferences", Action: showPrefs},
+})
+```
+
+An empty `Label` renders as a separator. A nil `Action` renders as a
+disabled item.
+
+## Platform support matrix
+
+| Operation | macOS | Windows | Linux |
+|---|---|---|---|
+| `SetBadge` | Supported | Planned | Planned |
+| `SetProgress` | Supported | Planned | Planned |
+| `Bounce` | Supported | Planned | Planned |
+| `SetMenu` | Supported | Planned | Planned |
+
+On any unsupported combination the call is a silent no-op so portable
+code stays portable. macOS support is delivered through the Cocoa
+`NSDockTile` API; no additional dependencies are required.
+
+On macOS, `SetProgress` draws a rounded bar over the app icon by
+installing a custom `NSView` as the dock tile's content view.
+`SetMenu` installs the `applicationDockMenu:` method on the existing
+application delegate at runtime via the Objective-C runtime, so it
+composes cleanly with Fyne's own delegate. The menu you set replaces
+any previous one; pass `nil` to clear.

@@ -1,0 +1,4 @@
+{
+  "title": "State and reactivity",
+  "pages": ["state", "refs", "signals", "stores", "effects", "persisted"]
+}

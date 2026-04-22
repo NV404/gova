@@ -1,0 +1,65 @@
+---
+title: Introduction
+description: The declarative GUI framework for Go.
+---
+
+Gova is a declarative GUI toolkit for writing native desktop applications in
+Go. It combines struct-based views, modifier chains, and reactive state into
+a small, opinionated API built from plain Go primitives: structs and methods,
+interfaces, generics, and free functions. It is built on top of
+[Fyne](https://fyne.io/) but hides the underlying widget toolkit so you write
+against a smaller, opinionated surface.
+
+## What Gova gives you
+
+- **Struct components.** Declare a view as a struct with typed prop fields;
+  implement one `Body` method to render.
+- **Call-site state.** `State(s, initial)` uses the caller's file and line as
+  identity, so you never write string keys.
+- **Modifier chains.** `Text("hello").Font(Title).Bold().Padding(SpaceMD)` is
+  the canonical way to style. Modifier order is irrelevant.
+- **Reactive primitives.** States, signals, derived values, and stores all
+  update the view automatically when they change.
+- **Navigation that is not magical.** A `NavStack` owns its stack, `UseNav`
+  hands you a typed handle to push and pop, and `NavLink` is the declarative
+  shortcut.
+- **Headless testing.** `TestRender` renders a component without opening a
+  window, so you can assert on the tree and simulate taps.
+
+## What a program looks like
+
+```go
+package main
+
+import . "github.com/nv404/gova"
+
+type Counter struct{}
+
+func (Counter) Body(s *Scope) View {
+	count := State(s, 0)
+
+	return VStack(
+		Text(count.Format("count: %d")).Font(Title),
+		Button("Increment", func() {
+			count.Update(func(n int) int { return n + 1 })
+		}),
+	).Spacing(SpaceMD).Padding(SpaceLG)
+}
+
+func main() {
+	Run("Counter", Counter{})
+}
+```
+
+The rest of the documentation walks through every concept and every exported
+identifier. Start with [Getting started](/docs/getting-started/installation) if
+you are new.
+
+## Conventions in these docs
+
+- Code examples import the package as `"github.com/nv404/gova"` and use names
+  without an alias. Feel free to alias the import in your own code; the
+  framework does not require a specific alias.
+- No feature is documented unless it exists in the current codebase.
+- Mentions of "the scope" refer to the `*gova.Scope` value passed to a
+  component's `Body` method or to a `Define` closure.

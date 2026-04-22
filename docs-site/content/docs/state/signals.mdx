@@ -1,0 +1,75 @@
+---
+title: Signals and derived values
+description: Reactive transformations of state that the renderer subscribes to directly.
+---
+
+A `Signal[T]` is any reactive value whose changes can be subscribed to. The
+interface is:
+
+```go
+type Signal[T any] interface {
+	Value() T
+	// (unexported subscribe method used by the renderer)
+}
+```
+
+Signals are produced by `StateValue.Format` and `Derived`.
+
+## Format signals
+
+`StateValue[T].Format(format)` produces a `Signal[string]` by applying
+`fmt.Sprintf(format, current)`. When you pass it to `Text`, the renderer
+subscribes and patches the label in place.
+
+```go
+count := gova.State(s, 0)
+
+gova.Text(count.Format("count: %d"))
+```
+
+## Derived signals
+
+`Derived[T, U]` transforms a `*StateValue[T]` into a `Signal[U]`.
+
+```go
+func Derived[T any, U any](state *StateValue[T], fn func(T) U) Signal[U]
+```
+
+The transformation runs eagerly once at creation time and again each time the
+source state changes.
+
+```go
+type Model struct{ Todos []Todo }
+
+model := gova.State(s, Model{})
+
+total := gova.Derived(model, func(m Model) string {
+    return fmt.Sprintf("%d items", len(m.Todos))
+})
+
+gova.Text(total)
+```
+
+## Derived lists
+
+`DerivedList` is a specialization that returns a `*StateValue[[]T]` instead
+of a `Signal[[]T]`, so you can pass the result to `List` or `ListOf`.
+
+```go
+func DerivedList[M any, T any](source *StateValue[M], extract func(M) []T) *StateValue[[]T]
+
+todos := gova.DerivedList(model, func(m Model) []Todo { return m.Todos })
+```
+
+The derived state is read-only in practice; mutate the source state and the
+derived slice updates automatically.
+
+## Text accepts either a string or a Signal[string]
+
+The `Text` constructor is `Text(content any)`. It type-switches on the
+argument:
+
+- `string` renders as static text.
+- `Signal[string]` (produced by `Format` or `Derived`) renders reactively.
+
+Any other type panics at construction time.

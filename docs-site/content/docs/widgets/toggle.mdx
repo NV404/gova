@@ -1,0 +1,40 @@
+---
+title: Toggle
+description: Checkbox bound to a boolean state or a plain value.
+---
+
+```go
+func Toggle(arg any) *viewNode
+
+func (n *viewNode) Label(label string) *viewNode
+func (n *viewNode) OnChange(fn func(bool)) *viewNode
+```
+
+`Toggle` accepts either a `*StateValue[bool]` for reactive binding or a
+plain `bool` for transient (read-only) rendering.
+
+## State-driven
+
+```go
+darkMode := gova.State(s, false)
+
+gova.Toggle(darkMode).Label("Dark Mode")
+```
+
+Toggling writes through to the state and triggers a re-render.
+
+## Plain boolean inside a list row
+
+List rows often reconstruct on every update, so you usually bind the toggle
+to the row's current value and wire `OnChange` back to a model mutation:
+
+```go
+gova.Toggle(todo.Done).OnChange(func(done bool) {
+    model.Update(func(m Model) Model {
+        return toggleTodo(m, todo.ID, done)
+    })
+})
+```
+
+Any argument that is neither `*StateValue[bool]` nor `bool` panics at
+construction time.

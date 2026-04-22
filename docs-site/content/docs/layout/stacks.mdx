@@ -1,0 +1,89 @@
+---
+title: VStack and HStack
+description: Vertical and horizontal stack layouts with spacing and alignment.
+---
+
+`VStack` arranges children top-to-bottom; `HStack` arranges them
+left-to-right. Both accept any number of viewable arguments (a `View`, a
+`Viewable`, or `nil` to skip).
+
+```go
+func VStack(children ...any) *viewNode
+func HStack(children ...any) *viewNode
+```
+
+## Spacing
+
+```go
+gova.VStack(
+    gova.Text("Top"),
+    gova.Text("Bottom"),
+).Spacing(gova.SpaceMD)
+```
+
+Use the [spacing tokens](/docs/modifiers/spacing) (`SpaceXS`, `SpaceSM`,
+`SpaceMD`, `SpaceLG`, `SpaceXL`) for consistency.
+
+## Alignment
+
+`Align` sets cross-axis alignment. In a `VStack` that is horizontal; in an
+`HStack` it is vertical.
+
+```go
+gova.VStack(...).Align(gova.Leading)
+gova.HStack(...).Align(gova.Top)
+```
+
+Legacy-friendly names (`Leading`, `Trailing`, `Top`, `Bottom`, `Center`)
+alias the canonical `AlignLeading`, `AlignTrailing`, and so on. Either spelling
+works.
+
+## Spacer
+
+`Spacer()` expands to take up remaining space along the stack's primary axis.
+Use it to push siblings apart:
+
+```go
+gova.HStack(
+    gova.Text("Left"),
+    gova.Spacer(),
+    gova.Text("Right"),
+)
+```
+
+## Group
+
+`Group(children...)` flattens its children into the parent layout. It is the
+workaround for Go's limitation that you cannot mix `args...` spread with
+additional positional arguments when calling a variadic function.
+
+```go
+var rows = []gova.View{row1, row2, row3}
+
+gova.VStack(
+    gova.Text("Header"),
+    gova.Group(rows...),
+    gova.Text("Footer"),
+)
+```
+
+## Growing a child
+
+A child with `.Grow()` fills the remaining primary-axis space; siblings pack
+at natural size. The `TextField` with a trailing `Button` is the canonical
+use case:
+
+```go
+gova.HStack(
+    gova.TextField(input).
+        Placeholder("What needs to be done?").
+        MinHeight(36).
+        Grow(),
+    gova.Button("Add", onAdd),
+).Spacing(gova.SpaceSM)
+```
+
+In an `HStack`, any children declared before the grow child become leading,
+and any children after become trailing. In a `VStack` they become top and
+bottom. Only the first child with `.Grow()` participates; additional grow
+marks on later siblings are ignored.
