@@ -29,9 +29,6 @@ const eventWait = 3 * time.Second
 
 func TestWatcherFiresOnGoFileWrite(t *testing.T) {
 	dir := t.TempDir()
-	if err := os.WriteFile(filepath.Join(dir, "main.go"), []byte("package x"), 0o644); err != nil {
-		t.Fatalf("seed: %v", err)
-	}
 	w, err := NewWatcher(WatcherOptions{Root: dir, Debounce: 30 * time.Millisecond})
 	if err != nil {
 		t.Fatalf("NewWatcher: %v", err)
@@ -39,6 +36,9 @@ func TestWatcherFiresOnGoFileWrite(t *testing.T) {
 	defer w.Close()
 	time.Sleep(watcherWarmup)
 
+	// Writing a fresh .go file in the watched dir fires a Create, which is
+	// delivered reliably on both inotify and kqueue. Seed-then-modify races
+	// with kqueue's file-level watch registration on macOS CI.
 	if err := os.WriteFile(filepath.Join(dir, "main.go"), []byte("package x\n"), 0o644); err != nil {
 		t.Fatalf("write: %v", err)
 	}
@@ -82,9 +82,6 @@ func TestWatcherIgnoresTestFiles(t *testing.T) {
 func TestWatcherDebouncesBurst(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "main.go")
-	if err := os.WriteFile(path, []byte("package x"), 0o644); err != nil {
-		t.Fatalf("seed: %v", err)
-	}
 	w, err := NewWatcher(WatcherOptions{Root: dir, Debounce: 100 * time.Millisecond})
 	if err != nil {
 		t.Fatalf("NewWatcher: %v", err)
@@ -92,6 +89,9 @@ func TestWatcherDebouncesBurst(t *testing.T) {
 	defer w.Close()
 	time.Sleep(watcherWarmup)
 
+	// First write creates the file (Create event fires everywhere); the
+	// subsequent writes keep the debounce timer alive. Either way, exactly
+	// one coalesced event must arrive.
 	for i := 0; i < 5; i++ {
 		if err := os.WriteFile(path, []byte("package x\n"), 0o644); err != nil {
 			t.Fatalf("write %d: %v", i, err)
