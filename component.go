@@ -25,6 +25,14 @@ type Viewable interface {
 	Body(s *Scope) View
 }
 
+// Component wraps a Viewable as a View so it can be passed to APIs that take
+// a typed View (Run, RunWithConfig, TestRender). Layout constructors accept
+// a Viewable directly via their variadic any arguments; this helper is for
+// the top-level entry points that cannot.
+func Component(v Viewable) View {
+	return wrapViewable(v)
+}
+
 // wrapViewable turns a Viewable into a View by creating a componentNode whose renderFn invokes Body with the current scope.
 func wrapViewable(v Viewable) View {
 	return &componentNode{

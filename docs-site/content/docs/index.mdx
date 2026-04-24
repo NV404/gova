@@ -47,7 +47,7 @@ func (Counter) Body(s *Scope) View {
 }
 
 func main() {
-	Run("Counter", Counter{})
+	Run("Counter", Component(Counter{}))
 }
 ```
 
