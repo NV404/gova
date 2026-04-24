@@ -38,6 +38,9 @@ func main() {
 }
 ```
 
+<img width="505" height="293" alt="Screenshot 2026-04-24 at 2 44 59 PM" src="https://github.com/user-attachments/assets/9e37552b-7689-4be5-8879-b933578c3565" />
+
+
 ## Why Gova
 
 - **Components as structs.** Views are plain Go structs with typed prop fields;
