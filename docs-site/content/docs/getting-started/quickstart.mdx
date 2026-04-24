@@ -109,7 +109,7 @@ var TodoApp = gova.Define(func(s *gova.Scope) gova.View {
 					)
 				},
 			),
-		),
+		).Padding(gova.SpaceLG),
 	).Top(
 		gova.VStack(
 			gova.Text("Todos").Font(gova.Title).Bold(),
