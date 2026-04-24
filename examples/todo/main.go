@@ -82,7 +82,7 @@ var TodoApp = g.Define(func(s *g.Scope) g.View {
 					)
 				},
 			),
-		),
+		).Padding(gova.SpaceLG),
 	).Top(
 		g.VStack(
 			g.Text("Todos").Font(g.Title).Bold(),
