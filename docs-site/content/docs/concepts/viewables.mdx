@@ -51,6 +51,22 @@ to `VStack`, `List`, or any other constructor.
   prop if a child view is expensive to construct and you want to defer it
   (see `NavLink` for an example).
 
+## Passing a Viewable to typed `View` slots
+
+Layout constructors accept a Viewable directly because their children are
+variadic `any`. Top-level entry points like `Run`, `RunWithConfig`, and
+`TestRender` take a typed `View`, so a Viewable needs a one-call wrapper:
+
+```go
+func main() {
+	gova.Run("Counter", gova.Component(Counter{}))
+}
+```
+
+`Component(v Viewable) View` is a thin adapter. It preserves the Viewable's
+Body semantics and its reactive scope; all it does is give the compiler a
+`View` where it asks for one.
+
 ## When to reach for `Define`
 
 `Define` is fine for:

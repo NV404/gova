@@ -13,7 +13,7 @@ tree you can query and interact with.
 
 ```go
 func TestCounterIncrements(t *testing.T) {
-    tree := gova.TestRender(Counter{})
+    tree := gova.TestRender(gova.Component(Counter{}))
 
     if got := tree.FindText(0).Value; got != "count: 0" {
         t.Fatalf("unexpected initial text: %q", got)

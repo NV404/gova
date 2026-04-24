@@ -32,9 +32,7 @@ func (Counter) Body(s *g.Scope) g.View {
 }
 
 func main() {
-    g.Run("Counter", g.Define(func(s *g.Scope) g.View {
-        return Counter{}
-    }))
+    g.Run("Counter", g.Component(Counter{}))
 }
 ```
 
