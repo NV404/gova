@@ -13,7 +13,7 @@ func TestRender(root View, opts ...TestOption) *RenderedTree {
 
 	var node *viewNode
 	if comp, ok := root.(*componentNode); ok {
-		rendered := comp.renderFn(scope)
+		rendered := renderComponent(comp, scope)
 		node = rendered.viewNode()
 		// Resolve nested components
 		node = resolveTree(node, scope)
@@ -30,7 +30,7 @@ func TestRender(root View, opts ...TestOption) *RenderedTree {
 
 func resolveTree(node *viewNode, scope *Scope) *viewNode {
 	if node.componentRef != nil {
-		rendered := node.componentRef.renderFn(scope)
+		rendered := renderComponent(node.componentRef, scope)
 		return resolveTree(rendered.viewNode(), scope)
 	}
 	for i, child := range node.children {
@@ -75,7 +75,7 @@ func (rt *RenderedTree) Rerender() {
 	if rt.component == nil {
 		return
 	}
-	rendered := rt.component.renderFn(rt.scope)
+	rendered := renderComponent(rt.component, rt.scope)
 	rt.root = resolveTree(rendered.viewNode(), rt.scope)
 }
 

@@ -3,10 +3,26 @@ package gova
 import "fmt"
 
 type componentNode struct {
-	node     viewNode
-	renderFn func(*Scope) View
-	scope    *Scope
-	rendered *viewNode
+	node        viewNode
+	renderFn    func(*Scope) View
+	scope       *Scope
+	rendered    *viewNode
+	errFallback func(error) View
+}
+
+// renderComponent invokes the component's renderFn. If an ErrorBoundary
+// has registered a fallback on this component, panics are recovered and
+// the fallback view is returned in place of the panicking subtree.
+func renderComponent(c *componentNode, s *Scope) (result View) {
+	if c.errFallback == nil {
+		return c.renderFn(s)
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			result = c.errFallback(toError(r))
+		}
+	}()
+	return c.renderFn(s)
 }
 
 func (c *componentNode) viewNode() *viewNode {
