@@ -138,7 +138,7 @@ func RunWithConfig(config AppConfig, root View) {
 		mu.Lock()
 		defer mu.Unlock()
 
-		newView := comp.renderFn(scope)
+		newView := renderComponent(comp, scope)
 		newNode := newView.viewNode()
 		comp.rendered = newNode
 		newSpec := toSpecWithScope(newNode, scope)
@@ -154,7 +154,7 @@ func RunWithConfig(config AppConfig, root View) {
 	Provide[dialogPresenter](scope, dialogPresenterKey, newPlatformDialogPresenter(w))
 	Provide(scope, themeStoreKey, config.Theme)
 
-	firstView := comp.renderFn(scope)
+	firstView := renderComponent(comp, scope)
 	firstNode := firstView.viewNode()
 	comp.rendered = firstNode
 	spec := toSpecWithScope(firstNode, scope)

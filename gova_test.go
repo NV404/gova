@@ -412,11 +412,21 @@ func TestErrorBoundary(t *testing.T) {
 
 	comp := panicking.(*componentNode)
 	scope := newScope(context.Background(), nil)
-	result := comp.renderFn(scope)
+	result := renderComponent(comp, scope)
 	node := result.viewNode()
 
 	if node.kind != viewKindText {
 		t.Fatal("expected fallback Text view")
+	}
+
+	// Re-rendering must not nest panic-recovery wrappers; the
+	// side-channel fallback should still fire cleanly on subsequent
+	// renders, with renderFn left untouched.
+	for i := 0; i < 3; i++ {
+		result = renderComponent(comp, scope)
+		if result.viewNode().kind != viewKindText {
+			t.Fatalf("rerender %d: expected fallback Text view", i)
+		}
 	}
 }
 

@@ -21,7 +21,7 @@ func toSpecWithScope(node *viewNode, scope *Scope) fyneBridge.ViewSpec {
 		// gets its own child scope so its State(...) keys do not
 		// collide with the caller's.
 		childScope := scope.childScopeFor("body")
-		rendered := node.componentRef.renderFn(childScope)
+		rendered := renderComponent(node.componentRef, childScope)
 		return toSpecWithScope(rendered.viewNode(), childScope)
 	}
 
@@ -357,7 +357,7 @@ func childSpecsWithScope(node *viewNode, scope *Scope) []fyneBridge.ViewSpec {
 func renderSlot(node *viewNode, parentScope *Scope, slotID string) fyneBridge.ViewSpec {
 	if node.componentRef != nil && parentScope != nil {
 		childScope := parentScope.childScopeFor(slotID)
-		rendered := node.componentRef.renderFn(childScope)
+		rendered := renderComponent(node.componentRef, childScope)
 		return toSpecWithScope(rendered.viewNode(), childScope)
 	}
 	return toSpecWithScope(node, parentScope)
@@ -455,7 +455,7 @@ func navStackSpec(node *viewNode, scope *Scope, theme *Theme) fyneBridge.ViewSpe
 func resolveNavModifiers(node *viewNode, scope *Scope) *viewNode {
 	cur := node
 	for cur != nil && cur.componentRef != nil && scope != nil {
-		rendered := cur.componentRef.renderFn(scope)
+		rendered := renderComponent(cur.componentRef, scope)
 		cur = rendered.viewNode()
 	}
 	return cur
