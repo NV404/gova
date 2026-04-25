@@ -43,12 +43,13 @@ func ShowAlert(win fyne.Window, title, message string, actions []AlertActionSpec
 	d.Show()
 }
 
-func ShowSheet(win fyne.Window, content fyne.CanvasObject, onDismiss func()) {
+func ShowSheet(win fyne.Window, content fyne.CanvasObject, onDismiss func()) func() {
 	wrapped := container.New(layout.NewCustomPaddedLayout(10, 10, 10, 10), content)
 	d := dialog.NewCustom("", "Close", wrapped, win)
 	d.SetOnClosed(onDismiss)
 	d.Resize(fyne.NewSize(400, 300))
 	d.Show()
+	return d.Hide
 }
 
 type AlertActionSpec struct {

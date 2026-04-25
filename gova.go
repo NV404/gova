@@ -50,12 +50,35 @@ func provideOverlays(s *Scope, a fyne.App, w fyne.Window, bridge *fyneBridge.Fyn
 				fyneBridge.ShowAlert(w, title, message, specs)
 			})
 		},
-		showSheet: func(content View, onDismiss func()) {
+		showSheet: func(content View, onDismiss func()) func() {
 			spec := toSpec(content.viewNode())
+			var (
+				mu       sync.Mutex
+				hideFn   func()
+				canceled bool
+			)
 			fyne.Do(func() {
 				mounted := bridge.Mount(spec)
-				fyneBridge.ShowSheet(w, mounted.Object, onDismiss)
+				hide := fyneBridge.ShowSheet(w, mounted.Object, onDismiss)
+				mu.Lock()
+				if canceled {
+					mu.Unlock()
+					hide()
+					return
+				}
+				hideFn = hide
+				mu.Unlock()
 			})
+			return func() {
+				mu.Lock()
+				canceled = true
+				h := hideFn
+				hideFn = nil
+				mu.Unlock()
+				if h != nil {
+					fyne.Do(h)
+				}
+			}
 		},
 		setTheme: func(t *Theme) {
 			tc := fyneBridge.ThemeConfig{
