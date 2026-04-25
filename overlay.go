@@ -1,9 +1,11 @@
 package gova
 
+import "sync"
+
 type ActionStyle int
 
 const (
-	ActionDefault     ActionStyle = iota
+	ActionDefault ActionStyle = iota
 	ActionCancel
 	ActionDestructive
 )
@@ -20,7 +22,7 @@ var overlayStoreKey = &StoreKey[*overlayFuncs]{Default: nil}
 
 type overlayFuncs struct {
 	showAlert func(title, message string, actions []AlertAction)
-	showSheet func(content View, onDismiss func())
+	showSheet func(content View, onDismiss func()) func()
 	setTheme  func(theme *Theme)
 }
 
@@ -37,19 +39,40 @@ func UseAlert(s *Scope) func(title, message string, actions ...AlertAction) {
 }
 
 // UseSheet returns (show, dismiss) functions for presenting a sheet overlay.
+// dismiss programmatically closes the most recently shown sheet; it is a
+// no-op if no sheet is currently presented (either never shown, already
+// dismissed by the user, or already dismissed programmatically).
 func UseSheet(s *Scope) (show func(content View), dismiss func()) {
 	store := UseStore(s, overlayStoreKey)
 	fns := store.Get()
 
-	var dismissFn func()
+	var (
+		mu     sync.Mutex
+		cancel func()
+	)
 	show = func(content View) {
-		if fns != nil && fns.showSheet != nil {
-			fns.showSheet(content, func() { dismissFn = nil })
+		if fns == nil || fns.showSheet == nil {
+			return
 		}
+		// onDismiss fires when the sheet is closed by any path
+		// (user-driven Close button or programmatic cancel) so the
+		// next dismiss() call doesn't try to cancel a dead sheet.
+		c := fns.showSheet(content, func() {
+			mu.Lock()
+			cancel = nil
+			mu.Unlock()
+		})
+		mu.Lock()
+		cancel = c
+		mu.Unlock()
 	}
 	dismiss = func() {
-		if dismissFn != nil {
-			dismissFn()
+		mu.Lock()
+		c := cancel
+		cancel = nil
+		mu.Unlock()
+		if c != nil {
+			c()
 		}
 	}
 	return show, dismiss
