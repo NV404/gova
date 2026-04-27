@@ -28,10 +28,14 @@ type Options struct {
 	Stderr io.Writer
 }
 
+// TODO: Store the state in a VFS than in a actual file system.
+// This reduces clutter for the user in their FS
+
 // Run starts the hot-reload loop and blocks until ctx is cancelled or an
 // unrecoverable error is returned. A build failure is NOT unrecoverable; the
 // existing child keeps running and the error is printed.
 func Run(ctx context.Context, opts Options) error {
+	// Can worksing directory ever be empty?
 	if opts.WorkDir == "" {
 		wd, err := os.Getwd()
 		if err != nil {
@@ -39,6 +43,7 @@ func Run(ctx context.Context, opts Options) error {
 		}
 		opts.WorkDir = wd
 	}
+	// Can package ever be empty
 	if opts.Package == "" {
 		opts.Package = "."
 	}
@@ -50,6 +55,7 @@ func Run(ctx context.Context, opts Options) error {
 	if stderr == nil {
 		stderr = os.Stderr
 	}
+	// Can state dir ever be empty?
 	stateDir := opts.StateDir
 	if stateDir == "" {
 		stateDir = filepath.Join(opts.WorkDir, ".gova", "dev")
