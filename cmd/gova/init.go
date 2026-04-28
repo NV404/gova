@@ -2,8 +2,6 @@ package main
 
 import (
 	"context"
-	"os"
-	"path/filepath"
 	"time"
 
 	"github.com/nv404/gova/internal/config"
@@ -17,16 +15,11 @@ var initCommand = &cli.Command{
 	Name:        "init",
 	Description: "Initialise a gova project",
 	Action: func(ctx context.Context, c *cli.Command) error {
-		cwd, err := os.Getwd()
-		if err != nil {
-			return err
-		}
-		outputDir, err := filepath.Rel(cwd, "bin")
 		conf := config.Config{
 			Version:   "0.0.1",
-			Name:      "",
-			Package:   "",
-			OutputDir: outputDir,
+			Name:      "govaapp",
+			Package:   "github.com/cchirag/gova",
+			OutputDir: "bin",
 			Debounce:  config.Duration{Duration: time.Millisecond * 2000},
 			Ignore:    []string{"vendor", "node_modules", ".git"},
 			Modes: map[string]config.BuildMode{
