@@ -2,68 +2,47 @@ package main
 
 import (
 	"context"
-	"fmt"
-	"time"
+	"os"
 
-	"github.com/fsnotify/fsnotify"
-	"github.com/nv404/gova/internal/devserver"
+	"github.com/nv404/gova/internal/config"
+	"github.com/nv404/gova/internal/dev"
 	"github.com/urfave/cli/v3"
 )
-
-// Watcher watches the directory which has gova.json as the root
-// Runner runs the binary from the entry_point using go run
 
 var devCommand = &cli.Command{
 	Name:        "dev",
 	Description: "Watch the module and rebuild/restart on change (defaults to .)",
 	Flags: []cli.Flag{
-		&cli.DurationFlag{
-			Name:        "debounce",
-			Aliases:     []string{"d"},
-			DefaultText: "200ms",
-			OnlyOnce:    true,
-			Value:       time.Millisecond * 200,
-			Usage:       "-d 200ms",
-			Validator: func(d time.Duration) error {
-				if d <= 0 {
-					return fmt.Errorf("debounce duration cannot be 0")
-				}
-				return nil
-			},
-		},
-	},
-
-	Arguments: []cli.Argument{
-		&cli.StringArg{
-			Name:      "package",
-			Value:     ".",
-			UsageText: "./cmd/app",
+		&cli.StringFlag{
+			Name:    "mode",
+			Value:   "gova-dev",
+			Aliases: []string{"m"},
 			Config: cli.StringConfig{
 				TrimSpace: true,
 			},
+			DefaultText: "-m gova-dev",
+			Usage:       "-m dev",
 		},
 	},
 	Action: func(ctx context.Context, c *cli.Command) error {
-		debounce, stateDir, watchDir := c.Duration("debounce"), c.String("state_dir"), c.String("watch-dir")
-		pkg := c.StringArg("pkg")
-		return devserver.Run(ctx, devserver.Options{
-			Package:  pkg,
-			Args:     c.Args().Tail(),
-			Debounce: debounce,
-			StateDir: stateDir,
-			WorkDir:  watchDir,
-		})
+		mode := c.String("mode")
+		cfg, err := config.GetConfig()
+		if err != nil {
+			return err
+		}
+
+		cwd, err := os.Getwd()
+		if err != nil {
+			return err
+		}
+
+		server, err := dev.NewDevServer(ctx, cwd, cfg.Package, cfg.Ignore, cfg.Debounce.Duration)
+		if err != nil {
+			return err
+		}
+
+		server.Start(mode, cfg, c.Args().Slice()...)
+		<-ctx.Done()
+		return nil
 	},
-}
-
-type DevServer struct {
-	watcher    fsnotify.Watcher
-	root       string
-	entryPoint string
-	ctx        context.Context
-}
-
-func NewDevServer(root, entryPoint string) (*DevServer, error) {
-	// Check if root and entrypoint are valid paths
-	return nil, nil
 }

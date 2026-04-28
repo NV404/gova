@@ -1,4 +1,4 @@
-// package dev provides a convenient way to watch the working directory and restart the app
+// Package dev provides a convenient way to watch the working directory and restart the app
 package dev
 
 import (
@@ -11,6 +11,9 @@ import (
 	"time"
 
 	"github.com/fsnotify/fsnotify"
+	"github.com/nv404/gova/internal/builder"
+	"github.com/nv404/gova/internal/config"
+	"github.com/nv404/gova/internal/runner"
 	"github.com/nv404/gova/internal/utils"
 )
 
@@ -44,7 +47,7 @@ func NewDevServer(ctx context.Context, root, entryPoint string, ignore []string,
 	}
 
 	for _, p := range paths {
-		if err := watcher.Add(p); err != nil {
+		if err = watcher.Add(p); err != nil {
 			watcher.Close()
 			return nil, err
 		}
@@ -70,9 +73,9 @@ func NewDevServer(ctx context.Context, root, entryPoint string, ignore []string,
 // Start begins watching for file changes and handling rebuild triggers.
 // It spawns two goroutines: one for the watcher and one for the manager.
 // Cancel the context passed to NewDevServer to stop.
-func (d *DevServer) Start() {
+func (d *DevServer) Start(mode string, cnf config.Config, args ...string) {
 	go d.watch()
-	go d.manage()
+	go d.manage(mode, cnf, args...)
 }
 
 // watch listens for filesystem events and forwards debounced change
@@ -119,7 +122,7 @@ func (d *DevServer) watch() {
 // manage listens for rebuild notifications and drives the build process.
 // It owns the watcher lifecycle and closes it on exit.
 // It also closes the running application
-func (d *DevServer) manage() {
+func (d *DevServer) manage(mode string, cnf config.Config, args ...string) {
 	defer d.watcher.Close()
 	defer d.killApplication()
 
@@ -132,33 +135,32 @@ func (d *DevServer) manage() {
 			if !ok {
 				return
 			}
-			d.run()
+			d.run(mode, cnf, args...)
 		}
 	}
 }
 
 // run builds the application at the binDir and runs it. Called by the manager
 // whenever a debounced change notification is received.
-func (d *DevServer) run() {
+func (d *DevServer) run(mode string, cnf config.Config, args ...string) {
 	slog.Info("[dev server] change detected, rebuilding...", "entry", d.entryPoint)
 	d.killApplication()
 
-	compile := exec.CommandContext(d.ctx, "go", "build", "-o", d.binDir, d.entryPoint)
-	compile.Stdout = os.Stdout
-	compile.Stderr = os.Stderr
-	if err := compile.Run(); err != nil {
+	// Build the application
+
+	err := builder.BuildApplication(d.ctx, mode, cnf)
+	if err != nil {
 		slog.Error("[dev server] build failed", "error", err)
 		return
 	}
 
-	d.cmd = exec.CommandContext(d.ctx, "/tmp/gova-bin")
-	d.cmd.Stdout = os.Stdout
-	d.cmd.Stderr = os.Stderr
-	if err := d.cmd.Start(); err != nil {
+	cmd, err := runner.RunApplication(d.ctx, mode, cnf, args...)
+	if err != nil {
 		slog.Error("[dev server] failed to start process", "error", err)
 		d.cmd = nil
 		return
 	}
+	d.cmd = cmd
 
 	slog.Info("[dev server] process started", "pid", d.cmd.Process.Pid)
 }
