@@ -291,16 +291,19 @@ func fontSizeName(fontStyle int) fyne.ThemeSizeName {
 
 func (b *FyneBridge) mountText(spec ViewSpec) *MountedNode {
 	if spec.HasColor {
-		ct := canvas.NewText(spec.TextValue, specColor(spec.TextColor))
-		ct.TextSize = theme.Size(fontSizeName(spec.FontStyle))
-		ct.TextStyle.Bold = spec.Bold
-		ct.TextStyle.Italic = spec.Italic
-		node := &MountedNode{Spec: spec, Object: ct}
+		ct := newColoredText(
+			spec.TextValue,
+			specColor(spec.TextColor),
+			fontSizeName(spec.FontStyle),
+			spec.Bold,
+			spec.Italic,
+			spec.NoWrap,
+		)
+		node := &MountedNode{Spec: spec, Object: ct, Inner: ct}
 		if spec.TextSubscribe != nil {
 			unsub := spec.TextSubscribe(func(newText string) {
 				fyne.Do(func() {
-					ct.Text = newText
-					ct.Refresh()
+					ct.setText(newText)
 				})
 			})
 			node.Unsubs = append(node.Unsubs, unsub)
@@ -317,7 +320,10 @@ func (b *FyneBridge) mountText(spec ViewSpec) *MountedNode {
 			},
 		}
 		rt := widget.NewRichText(seg)
-		node := &MountedNode{Spec: spec, Object: rt}
+		if !spec.NoWrap {
+			rt.Wrapping = fyne.TextWrapWord
+		}
+		node := &MountedNode{Spec: spec, Object: rt, Inner: rt}
 		if spec.TextSubscribe != nil {
 			unsub := spec.TextSubscribe(func(newText string) {
 				fyne.Do(func() {
@@ -337,7 +343,10 @@ func (b *FyneBridge) mountText(spec ViewSpec) *MountedNode {
 	if spec.Italic {
 		label.TextStyle.Italic = true
 	}
-	node := &MountedNode{Spec: spec, Object: label}
+	if !spec.NoWrap {
+		label.Wrapping = fyne.TextWrapWord
+	}
+	node := &MountedNode{Spec: spec, Object: label, Inner: label}
 	if spec.TextSubscribe != nil {
 		unsub := spec.TextSubscribe(func(newText string) {
 			fyne.Do(func() {
@@ -675,18 +684,12 @@ func (b *FyneBridge) mountScroll(spec ViewSpec) *MountedNode {
 func (b *FyneBridge) reconcileText(m *MountedNode, s ViewSpec) {
 	inner := m.innerObject()
 
-	if ct, ok := inner.(*canvas.Text); ok {
-		changed := false
+	if ct, ok := inner.(*coloredText); ok {
 		if s.TextValue != m.Spec.TextValue && s.TextSubscribe == nil {
-			ct.Text = s.TextValue
-			changed = true
+			ct.setText(s.TextValue)
 		}
 		if s.HasColor && s.TextColor != m.Spec.TextColor {
-			ct.Color = specColor(s.TextColor)
-			changed = true
-		}
-		if changed {
-			ct.Refresh()
+			ct.setColor(specColor(s.TextColor))
 		}
 		return
 	}
@@ -700,6 +703,14 @@ func (b *FyneBridge) reconcileText(m *MountedNode, s ViewSpec) {
 				}
 			}
 		}
+		if s.NoWrap != m.Spec.NoWrap {
+			if s.NoWrap {
+				rt.Wrapping = fyne.TextWrapOff
+			} else {
+				rt.Wrapping = fyne.TextWrapWord
+			}
+			rt.Refresh()
+		}
 		return
 	}
 
@@ -709,6 +720,14 @@ func (b *FyneBridge) reconcileText(m *MountedNode, s ViewSpec) {
 		}
 		if s.Bold != m.Spec.Bold {
 			label.TextStyle.Bold = s.Bold
+			label.Refresh()
+		}
+		if s.NoWrap != m.Spec.NoWrap {
+			if s.NoWrap {
+				label.Wrapping = fyne.TextWrapOff
+			} else {
+				label.Wrapping = fyne.TextWrapWord
+			}
 			label.Refresh()
 		}
 	}

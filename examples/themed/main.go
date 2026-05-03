@@ -18,7 +18,7 @@ var App = g.Define(func(s *g.Scope) g.View {
 		g.Divider(),
 
 		g.HStack(
-			g.Text("Dark Mode"),
+			g.Text("Dark Mode").NoWrap(),
 			g.Spacer(),
 			g.Toggle(isDark.Get()).OnChange(func(dark bool) {
 				isDark.Set(dark)
@@ -74,7 +74,7 @@ var App = g.Define(func(s *g.Scope) g.View {
 		g.Text("Small caption").Font(g.Caption).Color(g.Gray),
 
 		g.Spacer(),
-	).Padding(20)
+	).Padding(g.SpaceLG)
 })
 
 func main() {

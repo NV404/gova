@@ -16,28 +16,27 @@ embedded browser, no C++ toolchain to learn.
 ```go
 package main
 
-import g "github.com/nv404/gova"
+import . "github.com/nv404/gova"
 
-type Counter struct{}
+var Counter = Define(func(s *Scope) View {
+    count := State(s, 0)
+    return VStack(
+        Text(count.Format("Count: %d")),
+        Button("+", func() { count.Update(func(n int) int { return n + 1 }) }),
+        Button("-", func() { count.Update(func(n int) int { return n - 1 }) }),
+    )
+})
 
-func (Counter) Body(s *g.Scope) g.View {
-    count := g.State(s, 0)
-    return g.VStack(
-        g.Text(count.Format("Count: %d")).Font(g.Title),
-        g.HStack(
-            g.Button("-", func() { count.Set(count.Get() - 1) }),
-            g.Button("+", func() { count.Set(count.Get() + 1) }),
-        ).Spacing(g.SpaceMD),
-    ).Padding(g.SpaceLG)
-}
-
-func main() {
-    g.Run("Counter", g.Component(Counter{}))
-}
+func main() { Run("Counter", Counter) }
 ```
 
-<img width="505" height="293" alt="Screenshot 2026-04-24 at 2 44 59 PM" src="https://github.com/user-attachments/assets/9e37552b-7689-4be5-8879-b933578c3565" />
-
+<p align="center">
+  <img
+    src="docs-site/public/screenshots/counter-example.png"
+    alt="Counter example window on macOS"
+    width="640"
+  />
+</p>
 
 ## Why Gova
 

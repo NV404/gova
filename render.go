@@ -311,6 +311,7 @@ func toSpecWithScope(node *viewNode, scope *Scope) fyneBridge.ViewSpec {
 		}
 	}
 	spec.Grow = node.modifier.grow
+	spec.NoWrap = node.modifier.noWrap
 
 	return spec
 }
@@ -412,9 +413,8 @@ func navStackSpec(node *viewNode, scope *Scope, theme *Theme) fyneBridge.ViewSpe
 		return fyneBridge.ViewSpec{Kind: fyneBridge.KindGroup}
 	}
 
-	// Resolve the top view (it may be a component) to capture its nav modifiers.
-	topSpec := renderSlot(top, scope, "nav:top")
-	resolvedTop := resolveNavModifiers(top, scope)
+	topScope := scope.childScopeFor("nav:top")
+	resolvedTop, topSpec := renderTopForNav(top, topScope)
 
 	barTitle := ""
 	var toolbar *navToolbarData
@@ -450,13 +450,19 @@ func navStackSpec(node *viewNode, scope *Scope, theme *Theme) fyneBridge.ViewSpe
 	}
 }
 
-// resolveNavModifiers walks a (possibly component) node to find the final
-// viewNode whose modifiers carry NavTitle / NavToolbar.
-func resolveNavModifiers(node *viewNode, scope *Scope) *viewNode {
+func renderTopForNav(node *viewNode, topScope *Scope) (*viewNode, fyneBridge.ViewSpec) {
 	cur := node
-	for cur != nil && cur.componentRef != nil && scope != nil {
-		rendered := renderComponent(cur.componentRef, scope)
+	curScope := topScope
+	for cur != nil && cur.componentRef != nil && curScope != nil {
+		rendered := renderComponent(cur.componentRef, curScope)
 		cur = rendered.viewNode()
+		// If Body returned another component, descend with a stable
+		// nested-scope key so state below the boundary persists across
+		// renders. Most apps wrap a single Viewable per nav frame, so
+		// this loop typically runs once.
+		if cur != nil && cur.componentRef != nil {
+			curScope = curScope.childScopeFor("nav:nested")
+		}
 	}
-	return cur
+	return cur, toSpecWithScope(cur, curScope)
 }
