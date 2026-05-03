@@ -33,23 +33,43 @@ package main
 
 import . "github.com/nv404/gova"
 
-type Counter struct{}
-
-func (Counter) Body(s *Scope) View {
+var Counter = Define(func(s *Scope) View {
 	count := State(s, 0)
-
 	return VStack(
-		Text(count.Format("count: %d")).Font(Title),
-		Button("Increment", func() {
-			count.Update(func(n int) int { return n + 1 })
-		}),
-	).Spacing(SpaceMD).Padding(SpaceLG)
-}
+		Text(count.Format("Count: %d")),
+		Button("+", func() { count.Update(func(n int) int { return n + 1 }) }),
+		Button("-", func() { count.Update(func(n int) int { return n - 1 }) }),
+	)
+})
 
-func main() {
-	Run("Counter", Component(Counter{}))
-}
+func main() { Run("Counter", Counter) }
 ```
+
+<figure style={{ margin: '1.75rem 0 0' }}>
+  <img
+    src="/screenshots/counter-example.png"
+    alt="The counter example running as a native window on macOS"
+    style={{
+      width: '100%',
+      maxWidth: 720,
+      borderRadius: 12,
+      border: '1px solid var(--gova-line)',
+      background: 'var(--gova-ink)',
+      display: 'block',
+      margin: '0 auto',
+    }}
+  />
+  <figcaption style={{
+    marginTop: '0.6rem',
+    textAlign: 'center',
+    fontFamily: 'var(--font-mono)',
+    fontSize: '0.72rem',
+    letterSpacing: '0.05em',
+    color: 'var(--gova-cream-faint)',
+  }}>
+    The program above, running on macOS.
+  </figcaption>
+</figure>
 
 The rest of the documentation walks through every concept and every exported
 identifier. Start with [Getting started](/docs/getting-started/installation) if

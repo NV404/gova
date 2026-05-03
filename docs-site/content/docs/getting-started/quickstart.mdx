@@ -151,5 +151,50 @@ Save the file and run `go run .`. You should see a window with a title, an
 input with an Add button, and a scrolling list of todos below. Try adding,
 toggling, and deleting. Resize the window to confirm the input grows with it.
 
+<figure style={{ margin: '1.75rem 0 0' }}>
+  <img
+    src="/screenshots/todo-example.png"
+    alt="The Todo example running on macOS, showing two items and an input field"
+    style={{
+      width: '100%',
+      maxWidth: 720,
+      borderRadius: 12,
+      border: '1px solid var(--gova-line)',
+      background: 'var(--gova-ink)',
+      display: 'block',
+      margin: '0 auto',
+    }}
+  />
+  <figcaption style={{
+    marginTop: '0.6rem',
+    textAlign: 'center',
+    fontFamily: 'var(--font-mono)',
+    fontSize: '0.72rem',
+    letterSpacing: '0.05em',
+    color: 'var(--gova-cream-faint)',
+  }}>
+    The finished todo app, a single Go file, native window.
+  </figcaption>
+</figure>
+
+Want a richer take on the same idea: categories, filters, custom theme? See
+[`examples/fancytodo`](https://github.com/nv404/gova/tree/main/examples/fancytodo).
+
+<figure style={{ margin: '1.5rem 0 0' }}>
+  <img
+    src="/screenshots/fancytodo-example.png"
+    alt="The fancytodo example with categorized items and filter chips"
+    style={{
+      width: '100%',
+      maxWidth: 720,
+      borderRadius: 12,
+      border: '1px solid var(--gova-line)',
+      background: 'var(--gova-ink)',
+      display: 'block',
+      margin: '0 auto',
+    }}
+  />
+</figure>
+
 Once this is working, continue with [Core concepts](/docs/concepts) to learn
 what `View`, `Viewable`, and `Scope` mean precisely.

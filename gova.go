@@ -81,16 +81,7 @@ func provideOverlays(s *Scope, a fyne.App, w fyne.Window, bridge *fyneBridge.Fyn
 			}
 		},
 		setTheme: func(t *Theme) {
-			tc := fyneBridge.ThemeConfig{
-				Variant: int(t.Variant),
-				Accent:  t.Accent,
-			}
-			if t.Colors != nil {
-				tc.Colors = make(map[int]color.Color, len(t.Colors))
-				for k, v := range t.Colors {
-					tc.Colors[int(k)] = v
-				}
-			}
+			tc := buildThemeConfig(t)
 			fyne.Do(func() {
 				a.Settings().SetTheme(fyneBridge.NewTheme(tc))
 			})
@@ -106,19 +97,12 @@ func Run(title string, root View) {
 func RunWithConfig(config AppConfig, root View) {
 	a := fyneApp.New()
 
-	if config.Theme != nil {
-		tc := fyneBridge.ThemeConfig{
-			Variant: int(config.Theme.Variant),
-			Accent:  config.Theme.Accent,
-		}
-		if config.Theme.Colors != nil {
-			tc.Colors = make(map[int]color.Color, len(config.Theme.Colors))
-			for k, v := range config.Theme.Colors {
-				tc.Colors[int(k)] = v
-			}
-		}
-		a.Settings().SetTheme(fyneBridge.NewTheme(tc))
+	activeTheme := config.Theme
+	if activeTheme == nil {
+		activeTheme = GovaTheme()
+		config.Theme = activeTheme
 	}
+	a.Settings().SetTheme(fyneBridge.NewTheme(buildThemeConfig(activeTheme)))
 
 	iconBytes := loadIconBytes(config)
 	if len(iconBytes) > 0 {
@@ -187,6 +171,26 @@ func RunWithConfig(config AppConfig, root View) {
 	w.ShowAndRun()
 	mounted.Cleanup()
 	scope.destroy()
+}
+
+func buildThemeConfig(t *Theme) fyneBridge.ThemeConfig {
+	tc := fyneBridge.ThemeConfig{
+		Variant: int(t.Variant),
+		Accent:  t.Accent,
+	}
+	if len(t.Colors) > 0 {
+		tc.Colors = make(map[int]color.Color, len(t.Colors))
+		for k, v := range t.Colors {
+			tc.Colors[int(k)] = v
+		}
+	}
+	if len(t.Sizes) > 0 {
+		tc.Sizes = make(map[int]float32, len(t.Sizes))
+		for k, v := range t.Sizes {
+			tc.Sizes[int(k)] = v
+		}
+	}
+	return tc
 }
 
 // loadIconBytes resolves AppConfig.Icon / IconBytes into a byte slice.

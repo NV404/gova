@@ -167,7 +167,6 @@ var FancyTodo = g.Define(func(s *g.Scope) g.View {
 		g.TextField(input).
 			Placeholder("What needs to be done?").
 			OnSubmit(func(string) { add() }).
-			MinHeight(36).
 			Grow(),
 		addBtn,
 	).Spacing(g.SpaceSM)
@@ -293,7 +292,7 @@ func todoRow(t Todo, alpha float64, onToggle func(int, bool), onDelete func(int)
 		g.Text(string(t.Category)).Font(g.Caption).Color(g.Secondary),
 	).Spacing(g.SpaceXS)
 
-	body := g.VStack(title, meta).Spacing(g.SpaceXS).Align(g.Leading)
+	body := g.VStack(title, meta).Spacing(g.SpaceXS).Align(g.Leading).Grow()
 
 	deleteBtn := g.HStack(
 		g.Text("Delete").Font(g.Caption).Color(g.Secondary).Bold(),
@@ -307,7 +306,6 @@ func todoRow(t Todo, alpha float64, onToggle func(int, bool), onDelete func(int)
 	return g.HStack(
 		g.Toggle(t.Done).OnChange(func(done bool) { onToggle(t.ID, done) }),
 		body,
-		g.Spacer(),
 		deleteBtn,
 	).Spacing(g.SpaceSM).
 		PaddingH(g.SpaceMD).

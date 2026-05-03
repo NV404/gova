@@ -72,17 +72,19 @@ var TodoApp = g.Define(func(s *g.Scope) g.View {
 								return toggleTodo(m, id, done)
 							})
 						}),
-						g.Text(todo.Text),
-						g.Spacer(),
+						g.Text(todo.Text).Grow(),
 						g.Button("X", func() {
 							model.Update(func(m Model) Model {
 								return removeTodo(m, id)
 							})
 						}).Color(g.Red),
-					)
+					).
+						Spacing(g.SpaceSM).
+						PaddingH(g.SpaceLG).
+						PaddingV(g.SpaceSM)
 				},
 			),
-		).Padding(g.SpaceLG),
+		),
 	).Top(
 		g.VStack(
 			g.Text("Todos").Font(g.Title).Bold(),
@@ -90,7 +92,6 @@ var TodoApp = g.Define(func(s *g.Scope) g.View {
 				g.TextField(input).
 					Placeholder("What needs to be done?").
 					OnSubmit(func(val string) { add() }).
-					MinHeight(36).
 					Grow(),
 				g.Button("Add", add),
 			).Spacing(g.SpaceSM),

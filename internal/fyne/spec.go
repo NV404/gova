@@ -93,6 +93,7 @@ type ViewSpec struct {
 	FontStyle int
 	TextColor [4]uint8
 	HasColor  bool
+	NoWrap    bool
 
 	PaddingTop, PaddingRight, PaddingBottom, PaddingLeft float32
 	HasPadding                                           bool
@@ -108,10 +109,10 @@ type ViewSpec struct {
 	CornerRadius    float32
 	HasCornerRadius bool
 
-	ShadowColor                 [4]uint8
-	ShadowRadius                float32
+	ShadowColor                  [4]uint8
+	ShadowRadius                 float32
 	ShadowOffsetX, ShadowOffsetY float32
-	HasShadow                   bool
+	HasShadow                    bool
 
 	StrokeColor [4]uint8
 	StrokeWidth float32

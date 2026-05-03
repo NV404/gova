@@ -62,14 +62,16 @@ var NotesTab = g.Define(func(s *g.Scope) g.View {
 				func(i int, note Note) g.View {
 					id := note.ID
 					return g.HStack(
-						g.Text(note.Title),
-						g.Spacer(),
+						g.Text(note.Title).Grow(),
 						g.Button("Delete", func() {
 							model.Update(func(m NotesModel) NotesModel {
 								return removeNote(m, id)
 							})
 						}).Color(g.Red),
-					)
+					).
+						Spacing(g.SpaceSM).
+						PaddingH(g.SpaceLG).
+						PaddingV(g.SpaceSM)
 				},
 			),
 		),
@@ -80,13 +82,12 @@ var NotesTab = g.Define(func(s *g.Scope) g.View {
 				g.TextField(input).
 					Placeholder("New note title...").
 					OnSubmit(func(val string) { add() }).
-					MinHeight(36).
 					Grow(),
 				g.Button("Add", add),
 			).Spacing(g.SpaceSM),
-		).Spacing(g.SpaceMD).Padding(g.SpaceMD),
+		).Spacing(g.SpaceMD).Padding(g.SpaceLG),
 	).Bottom(
-		g.Text(count).Font(g.Caption).Color(g.Secondary).Padding(g.SpaceMD),
+		g.Text(count).Font(g.Caption).Color(g.Secondary).Padding(g.SpaceLG),
 	)
 })
 
@@ -102,7 +103,7 @@ var StatsTab = g.Define(func(s *g.Scope) g.View {
 		g.Divider(),
 		g.Text(count),
 		g.Spacer(),
-	).Padding(16)
+	).Padding(g.SpaceLG)
 })
 
 var ErrorTab = g.Define(func(s *g.Scope) g.View {
@@ -126,7 +127,7 @@ var ErrorTab = g.Define(func(s *g.Scope) g.View {
 			)
 		}),
 		g.Spacer(),
-	).Padding(16)
+	).Padding(g.SpaceLG)
 })
 
 func riskyOperation() error {

@@ -6,6 +6,7 @@ export default function HomePage() {
     <main style={{ position: 'relative', zIndex: 2 }}>
       <Hero />
       <Metrics />
+      <Showcase />
       <Features />
       <Platforms />
       <Toolchain />
@@ -226,7 +227,7 @@ function HeroCode() {
           {'  '}<Kw>return</Kw> <Fn>VStack</Fn>(
         </>,
         <>
-          {'    '}<Fn>Text</Fn>(count.<Fn>Format</Fn>(<Str>&quot;Count: %d&quot;</Str>)).<Fn>Font</Fn>(<Ty>Title</Ty>),
+          {'    '}<Fn>Text</Fn>(count.<Fn>Format</Fn>(<Str>&quot;Count: %d&quot;</Str>)),
         </>,
         <>
           {'    '}<Fn>Button</Fn>(<Str>&quot;+&quot;</Str>, <Kw>func</Kw>() {'{'} count.<Fn>Update</Fn>(<Kw>func</Kw>(n <Ty>int</Ty>) <Ty>int</Ty> {'{'} <Kw>return</Kw> n + <Nm>1</Nm> {'}'}) {'}'}),
@@ -335,6 +336,138 @@ function Metrics() {
         </p>
       </div>
     </section>
+  );
+}
+
+/* ---------- Showcase ---------- */
+
+function Showcase() {
+  const apps: Array<{
+    name: string;
+    src: string;
+    href: string;
+  }> = [
+    {
+      name: 'counter',
+      src: '/screenshots/counter-example.png',
+      href: 'https://github.com/nv404/gova/tree/main/examples/counter',
+    },
+    {
+      name: 'todo',
+      src: '/screenshots/todo-example.png',
+      href: 'https://github.com/nv404/gova/tree/main/examples/todo',
+    },
+    {
+      name: 'fancytodo',
+      src: '/screenshots/fancytodo-example.png',
+      href: 'https://github.com/nv404/gova/tree/main/examples/fancytodo',
+    },
+  ];
+  return (
+    <Section title="A few examples." width={1200}>
+      <p style={sectionSub}>
+        Each one is a single Go file in{' '}
+        <span style={monoInline}>./examples</span>. Click through to read the
+        source.
+      </p>
+
+      <div
+        className="gova-showcase-grid"
+        style={{
+          marginTop: '2.5rem',
+          display: 'grid',
+          gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+          gap: '1.25rem',
+        }}
+      >
+        {apps.map((a) => (
+          <Link
+            key={a.name}
+            href={a.href}
+            target="_blank"
+            rel="noreferrer"
+            className="gova-showcase-card gova-reveal"
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '1rem',
+              padding: '1.25rem 1.25rem 1.4rem',
+              borderRadius: 14,
+              border: '1px solid var(--gova-line)',
+              background:
+                'linear-gradient(180deg, var(--gova-surface) 0%, var(--gova-ink-2) 100%)',
+              textDecoration: 'none',
+              color: 'inherit',
+              transition:
+                'border-color 200ms ease, transform 200ms ease, box-shadow 200ms ease',
+            }}
+          >
+            <div
+              style={{
+                position: 'relative',
+                borderRadius: 10,
+                overflow: 'hidden',
+                background:
+                  'radial-gradient(120% 100% at 50% 0%, rgba(247,244,229,0.06) 0%, rgba(0,0,0,0) 60%), var(--gova-ink)',
+                border: '1px solid var(--gova-line)',
+                aspectRatio: '16 / 11',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '1.4rem',
+              }}
+            >
+              <img
+                src={a.src}
+                alt={`${a.name} example running on macOS`}
+                loading="lazy"
+                style={{
+                  maxWidth: '100%',
+                  maxHeight: '100%',
+                  width: 'auto',
+                  height: 'auto',
+                  display: 'block',
+                  filter: 'drop-shadow(0 18px 30px rgba(0,0,0,0.55))',
+                }}
+              />
+            </div>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: 10,
+              }}
+            >
+              <h3
+                style={{
+                  margin: 0,
+                  fontFamily: 'var(--font-mono)',
+                  fontWeight: 500,
+                  fontSize: '0.95rem',
+                  letterSpacing: '-0.005em',
+                  color: 'var(--gova-cream)',
+                }}
+              >
+                {a.name}
+              </h3>
+              <span
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '0.72rem',
+                  color: 'var(--gova-cream-faint)',
+                }}
+              >
+                source <Arrow />
+              </span>
+            </div>
+          </Link>
+        ))}
+      </div>
+    </Section>
   );
 }
 

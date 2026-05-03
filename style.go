@@ -30,6 +30,37 @@ const (
 	ColorSurface
 	ColorAccent
 	ColorBorder
+	ColorOnPrimary
+	ColorOverlay
+	ColorMenu
+	ColorPlaceholder
+	ColorPressed
+	ColorHeader
+	ColorSeparator
+	ColorHyperlink
+	ColorDisabledBG
+	ColorOnError
+	ColorOnSuccess
+	ColorOnWarning
+)
+
+type ThemeSizeName int
+
+const (
+	SizePadding ThemeSizeName = iota
+	SizeInnerPadding
+	SizeText
+	SizeHeadingText
+	SizeSubHeadingText
+	SizeCaptionText
+	SizeSeparatorThickness
+	SizeInputBorder
+	SizeInputRadius
+	SizeSelectionRadius
+	SizeScrollBar
+	SizeScrollBarRadius
+	SizeIconInline
+	SizeLineSpacing
 )
 
 // themeColor is a sentinel value for a theme-resolved color. It implements
@@ -80,61 +111,141 @@ func resolveColor(c any, theme *Theme) color.Color {
 }
 
 func defaultSemantic(name ThemeColorName, theme *Theme) color.Color {
-	dark := theme != nil && theme.Variant == ThemeDark
+	dark := theme == nil || theme.Variant != ThemeLight
+	if dark {
+		return govaDarkColor(name)
+	}
+	return govaLightColor(name)
+}
+
+func govaDarkColor(name ThemeColorName) color.Color {
 	switch name {
-	case ColorForeground, ColorPrimary:
-		if dark {
-			return color.NRGBA{R: 240, G: 240, B: 240, A: 255}
-		}
-		return color.NRGBA{R: 20, G: 20, B: 20, A: 255}
-	case ColorSecondary:
-		if dark {
-			return color.NRGBA{R: 170, G: 170, B: 170, A: 255}
-		}
-		return color.NRGBA{R: 110, G: 110, B: 110, A: 255}
 	case ColorBackground:
-		if dark {
-			return color.NRGBA{R: 20, G: 20, B: 22, A: 255}
-		}
-		return color.NRGBA{R: 250, G: 250, B: 250, A: 255}
+		return rgb(0x0F, 0x0F, 0x0F)
 	case ColorSurface:
-		if dark {
-			return color.NRGBA{R: 40, G: 40, B: 44, A: 255}
-		}
-		return color.NRGBA{R: 255, G: 255, B: 255, A: 255}
-	case ColorAccent:
-		return color.NRGBA{R: 0, G: 122, B: 255, A: 255}
+		return rgb(0x17, 0x17, 0x17)
+	case ColorInputBackground:
+		return rgb(0x17, 0x17, 0x17)
+	case ColorMenu:
+		return rgb(0x1A, 0x1A, 0x1A)
+	case ColorOverlay:
+		return rgba(0x0F, 0x0F, 0x0F, 0xF2)
+	case ColorHeader:
+		return rgb(0x0F, 0x0F, 0x0F)
+	case ColorButton:
+		return rgb(0x27, 0x27, 0x27)
+	case ColorDisabledBG:
+		return rgb(0x1F, 0x1F, 0x1F)
+	case ColorBorder, ColorSeparator, ColorInputBorder:
+		return rgb(0x27, 0x27, 0x27)
+	case ColorForeground, ColorPrimary, ColorAccent, ColorHyperlink:
+		return rgb(0xF1, 0xF1, 0xF1)
+	case ColorOnPrimary:
+		return rgb(0x0F, 0x0F, 0x0F)
+	case ColorSecondary:
+		return rgb(0xA3, 0xA3, 0xA3)
+	case ColorPlaceholder:
+		return rgb(0x73, 0x73, 0x73)
+	case ColorDisabled:
+		return rgb(0x5C, 0x5C, 0x5C)
+	case ColorHover:
+		return rgba(0xFF, 0xFF, 0xFF, 0x14)
+	case ColorPressed:
+		return rgba(0xFF, 0xFF, 0xFF, 0x1F)
+	case ColorFocus:
+		return rgba(0xF1, 0xF1, 0xF1, 0x59)
+	case ColorSelection:
+		return rgba(0xF1, 0xF1, 0xF1, 0x29)
 	case ColorError:
-		return color.NRGBA{R: 255, G: 59, B: 48, A: 255}
+		return rgb(0xE5, 0x48, 0x4D)
 	case ColorSuccess:
-		return color.NRGBA{R: 52, G: 199, B: 89, A: 255}
+		return rgb(0x46, 0xA7, 0x58)
 	case ColorWarning:
-		return color.NRGBA{R: 255, G: 149, B: 0, A: 255}
-	case ColorBorder:
-		if dark {
-			return color.NRGBA{R: 70, G: 70, B: 75, A: 255}
-		}
-		return color.NRGBA{R: 200, G: 200, B: 205, A: 255}
+		return rgb(0xE5, 0xA2, 0x3B)
+	case ColorOnError, ColorOnSuccess, ColorOnWarning:
+		return rgb(0xF1, 0xF1, 0xF1)
 	}
 	return color.Black
 }
+
+func govaLightColor(name ThemeColorName) color.Color {
+	switch name {
+	case ColorBackground:
+		return rgb(0xF1, 0xF1, 0xF1)
+	case ColorSurface:
+		return rgb(0xFF, 0xFF, 0xFF)
+	case ColorInputBackground:
+		return rgb(0xFF, 0xFF, 0xFF)
+	case ColorMenu:
+		return rgb(0xFF, 0xFF, 0xFF)
+	case ColorOverlay:
+		return rgba(0xFF, 0xFF, 0xFF, 0xF2)
+	case ColorHeader:
+		return rgb(0xF1, 0xF1, 0xF1)
+	case ColorButton:
+		return rgb(0xE5, 0xE5, 0xE5)
+	case ColorDisabledBG:
+		return rgb(0xEB, 0xEB, 0xEB)
+	case ColorBorder, ColorSeparator, ColorInputBorder:
+		return rgb(0xD4, 0xD4, 0xD4)
+	case ColorForeground, ColorPrimary, ColorAccent, ColorHyperlink:
+		return rgb(0x0F, 0x0F, 0x0F)
+	case ColorOnPrimary:
+		return rgb(0xF1, 0xF1, 0xF1)
+	case ColorSecondary:
+		return rgb(0x73, 0x73, 0x73)
+	case ColorPlaceholder:
+		return rgb(0x73, 0x73, 0x73)
+	case ColorDisabled:
+		return rgb(0xA3, 0xA3, 0xA3)
+	case ColorHover:
+		return rgba(0x00, 0x00, 0x00, 0x0A)
+	case ColorPressed:
+		return rgba(0x00, 0x00, 0x00, 0x14)
+	case ColorFocus:
+		return rgba(0x0F, 0x0F, 0x0F, 0x59)
+	case ColorSelection:
+		return rgba(0x0F, 0x0F, 0x0F, 0x29)
+	case ColorError:
+		return rgb(0xCD, 0x2B, 0x31)
+	case ColorSuccess:
+		return rgb(0x2A, 0x7E, 0x3B)
+	case ColorWarning:
+		return rgb(0xAD, 0x57, 0x00)
+	case ColorOnError, ColorOnSuccess, ColorOnWarning:
+		return rgb(0xF1, 0xF1, 0xF1)
+	}
+	return color.Black
+}
+
+func rgb(r, g, b uint8) color.Color     { return color.NRGBA{R: r, G: g, B: b, A: 0xFF} }
+func rgba(r, g, b, a uint8) color.Color { return color.NRGBA{R: r, G: g, B: b, A: a} }
 
 type Theme struct {
 	Variant ThemeVariant
 	Accent  color.Color
 	Colors  map[ThemeColorName]color.Color
+	Sizes   map[ThemeSizeName]float32
 }
 
 func LightTheme() *Theme {
-	return &Theme{Variant: ThemeLight, Colors: make(map[ThemeColorName]color.Color)}
+	return &Theme{Variant: ThemeLight}
 }
 
 func DarkTheme() *Theme {
-	return &Theme{Variant: ThemeDark, Colors: make(map[ThemeColorName]color.Color)}
+	return &Theme{Variant: ThemeDark}
 }
 
 func SystemTheme() *Theme {
-	return &Theme{Variant: ThemeSystem, Colors: make(map[ThemeColorName]color.Color)}
+	return &Theme{Variant: ThemeSystem}
+}
+
+func GovaTheme() *Theme {
+	return &Theme{Variant: ThemeDark}
+}
+
+func GovaLightTheme() *Theme {
+	return &Theme{Variant: ThemeLight}
 }
 
 func (t *Theme) WithAccent(c color.Color) *Theme {
@@ -147,6 +258,14 @@ func (t *Theme) SetColor(name ThemeColorName, c color.Color) *Theme {
 		t.Colors = make(map[ThemeColorName]color.Color)
 	}
 	t.Colors[name] = c
+	return t
+}
+
+func (t *Theme) SetSize(name ThemeSizeName, v float32) *Theme {
+	if t.Sizes == nil {
+		t.Sizes = make(map[ThemeSizeName]float32)
+	}
+	t.Sizes[name] = v
 	return t
 }
 

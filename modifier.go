@@ -27,6 +27,7 @@ type modifierSet struct {
 	hasNavTitle   bool
 	navToolbar    *navToolbarData
 	grow          bool
+	noWrap        bool
 }
 
 type paddingModifier struct {
@@ -247,6 +248,11 @@ func (n *viewNode) MinHeight(h float32) *viewNode {
 // after become trailing, and the grow child fills the remainder.
 func (n *viewNode) Grow() *viewNode {
 	n.modifier.grow = true
+	return n
+}
+
+func (n *viewNode) NoWrap() *viewNode {
+	n.modifier.noWrap = true
 	return n
 }
 
